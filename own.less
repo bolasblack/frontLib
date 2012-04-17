@@ -1,0 +1,11 @@
+.opacity(@opacity: 0.5) {
+    @filterOpacity: @opacity * 100;
+    /* Firefox, Safari(WebKit), Opera)  */
+    opacity: @opacity;
+    /* IE 8 */ 
+    filter: "alpha(opacity=60)";
+    /* IE 4-7 */ 
+    filter: alpha(opacity=60);
+    /* needed in IE up to version 7, or set width or height to trigger "hasLayout" */   
+    zoom: 1;
+}
