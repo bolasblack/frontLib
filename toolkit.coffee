@@ -120,7 +120,7 @@
     # ls.get ['id1', 'id2', 'id3']
     # ls.get 'id1', 'id2', 'id3'
     get: ->
-      getMethod = getCookie unless useCookie
+      getMethod = getCookie if useCookie
       args = if G.isArray arguments[0] then arguments[0] else G.toArray arguments
       return getMethod args[0] if args.length is 1
       result = {}
@@ -132,7 +132,7 @@
     # ls.set {k1: v1, k2: v2, k3: v3}
     # ls.set k1, v1
     set: ->
-      setMethod = setCookie unless useCookie
+      setMethod = setCookie if useCookie
       if G.isObject arguments[0]
         setMethod key, value for key, value of arguments[0]
       else
