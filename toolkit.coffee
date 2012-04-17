@@ -7,16 +7,15 @@
   window.G = G = (queryId) ->
     document.getElementById queryId
 
-  tmpObj = {}
   class2type = {}
+  dumpFnDict = {} # 存储 dump 类函数，便于动态调用
   getInt = (str, hex=10) ->
     return 0 if str = ""
     parseInt str, hex
   
   'Arguments Function Number String Date RegExp Array Boolean Object'.replace /[^, ]+/g, (typeName) ->
     class2type["[object #{typeName}]"] = typeName.toLowerCase()
-    G["is#{typeName}"] = (obj) ->
-      toString.call(obj) is "[object #{typeName}]"
+    G["is#{typeName}"] = (obj) -> toString.call(obj) is "[object #{typeName}]"
 
   G.extend = (target, origin) ->
     [target, origin] = [G, target] unless origin?
@@ -46,13 +45,13 @@
       key for key of obj
       key is undefined or G.has obj, key
 
-    arr2str: tmpObj.Array2str = (arr) ->
+    arr2str: dumpFnDict.Array2str = (arr) ->
       resultStr = "["
       for v in arr
         resultStr += "#{G.dump v},"
       resultStr.slice(0, -1) + "]"
 
-    obj2str: tmpObj.Object2str = (obj) ->
+    obj2str: dumpFnDict.Object2str = (obj) ->
       resultStr = "{"
       for k, v of obj
         if G.has obj, k
@@ -60,10 +59,10 @@
       resultStr.slice(0, -1) + "}"
 
     dump: (obj) ->
-      tmpObj["String2str"] = (string) ->
+      dumpFnDict["String2str"] = (string) ->
         if G.isString string then '"' + string + '"' else string
       for type in ["Object", "Array", "String"]
-        return tmpObj["#{type}2str"] obj if G["is#{type}"] obj
+        return dumpFnDict["#{type}2str"] obj if G["is#{type}"] obj
       obj
 
     param: (obj) ->
@@ -98,7 +97,6 @@
       jsonpTag.src = url + "?" + queryStr
       headElem.appendChild jsonpTag
 
-
   G.localStorage = ((window)->
     ls = window.localStorage
     cookieDay = 30
@@ -107,7 +105,7 @@
 
     getCookie = (key) ->
       re = new RegExp("\\??" + key + "=([^;]*)", "g")
-      if [result = re.exec document.cookie][0]? then unescape(result[1]) else ""
+      if [result = re.exec document.cookie][0]? then unescape(result[1]) else []._
 
     setCookie = (key, value) ->
       cookieStr = "#{key}=#{escape value}"
@@ -128,7 +126,8 @@
       return getMethod args[0] if args.length is 1
       result = {}
       for storageKey in args
-        result[storageKey] = getMethod storageKey
+        storageValue = getMethod storageKey
+        result[storageKey] = storageValue if storageValue?
       result
 
     # ls.set {k1: v1, k2: v2, k3: v3}
