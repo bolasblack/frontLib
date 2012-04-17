@@ -1,5 +1,6 @@
 ((window, document)->
   [OP, AP] = [Object.prototype, Array.prototype]
+  slice = AP.slice
   toString = OP.toString
   hasOwn = OP.hasOwnProperty
 
@@ -8,6 +9,9 @@
 
   tmpObj = {}
   class2type = {}
+  getInt = (str, hex=10) ->
+    return 0 if str = ""
+    parseInt str, hex
   
   'Arguments Function Number String Date RegExp Array Boolean Object'.replace /[^, ]+/g, (typeName) ->
     class2type["[object #{typeName}]"] = typeName.toLowerCase()
@@ -24,6 +28,12 @@
 
     has: (obj, attr) -> hasOwn.call obj, attr
     toType: (obj) -> unless obj? then String obj else class2type[toString.call obj] or "object"
+    toArray: (obj) -> #form underscore
+      return [] unless obj?
+      return slice.call obj if G.isArray obj
+      return slice.call obj if G.isArguments obj
+      return obj.toArray() if obj.toArray? and G.isFunction obj.toArray
+      v for k, v of obj
 
     isWindow: (obj) -> obj is obj.window
     isNode: (obj) -> obj.nodeType?
@@ -35,30 +45,6 @@
         return false
       key for key of obj
       key is undefined or G.has obj, key
-
-    localStorage: (->
-      ls = window.localStorage
-
-      # ls.get ['id1', 'id2', 'id3']
-      # ls.get 'id1', 'id2', 'id3'
-      get: ->
-        args = if G.isArray arguments[1] then arguments[1] else G.toArray(arguments).slice(1)
-        return ls[args[0]] if args.length is 1
-        result = {}
-        for storageKey in args
-          result[storageKey] = window.localStorage[storageKey]
-        result
-
-      # ls.set {k1: v1, k2: v2, k3: v3}
-      # ls.set k1, v1
-      set: ->
-        if G.isObject arguments[1]
-          for key, value of arguments[1]
-            ls[key] = value
-        else if [key = arguments[1]][0]? and [value = arguments[2]][0]?
-          ls[key] = value
-        this
-    )()
 
     arr2str: tmpObj.Array2str = (arr) ->
       resultStr = "["
@@ -105,9 +91,59 @@
       jsonpTag.onload = jsonpTag.onerror = jsonpTag.onreadystatechange = ->
         if /loaded|complete|undefined/.test jsonpTag.readyState
           jsonpTag.onload = jsonpTag.onerror = jsonpTag.onreadystatechange = null
+          console.log "jsonp state: ", jsonpTag.readyState
           headElem.removeChild jsonpTag
       queryData["callback"] = funcName
       jsonpTag.type = "text/javascript"
       jsonpTag.src = url + "?" + queryStr
       headElem.appendChild jsonpTag
+
+
+  G.localStorage = ((window)->
+    ls = window.localStorage
+    cookieDay = 30
+    useCookie = false
+    # TODO: 存取 cookie
+
+    getCookie = (key) ->
+      re = new RegExp("\\??" + key + "=([^;]*)", "g")
+      if [result = re.exec document.cookie][0]? then unescape(result[1]) else ""
+
+    setCookie = (key, value) ->
+      cookieStr = "#{key}=#{escape value}"
+      [exp = new Date()][0].setTime exp.getTime() + 30 * 24 * 60 * 60 * 1000
+      cookieStr += ";expires=#{exp.toGMTString()};path=/"
+      document.cookie = cookieStr
+
+    getLocalStorage = (key) -> ls[key]
+    setLocalStorage = (key, value) -> ls[key] = value
+
+    [getMethod, setMethod] = if ls? then [getLocalStorage, setLocalStorage] else [getCookie, setCookie]
+
+    # ls.get ['id1', 'id2', 'id3']
+    # ls.get 'id1', 'id2', 'id3'
+    get: ->
+      getMethod = getCookie unless useCookie
+      args = if G.isArray arguments[0] then arguments[0] else G.toArray arguments
+      return getMethod args[0] if args.length is 1
+      result = {}
+      for storageKey in args
+        result[storageKey] = getMethod storageKey
+      result
+
+    # ls.set {k1: v1, k2: v2, k3: v3}
+    # ls.set k1, v1
+    set: ->
+      setMethod = setCookie unless useCookie
+      if G.isObject arguments[0]
+        setMethod key, value for key, value of arguments[0]
+      else
+        [key, value] = arguments
+        setMethod key, value if key? and value?
+      this
+
+    useCookie: (bool) -> useCookie = bool
+    cookieDay: (day) -> cookieDay = getInt day
+  ) window
+
 ) window, document
