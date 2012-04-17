@@ -36,10 +36,29 @@
       key for key of obj
       key is undefined or G.has obj, key
 
-    localStorage:
-      get: () ->
-        
-      set: () ->
+    localStorage: (->
+      ls = window.localStorage
+
+      # ls.get ['id1', 'id2', 'id3']
+      # ls.get 'id1', 'id2', 'id3'
+      get: ->
+        args = if G.isArray arguments[1] then arguments[1] else G.toArray(arguments).slice(1)
+        return ls[args[0]] if args.length is 1
+        result = {}
+        for storageKey in args
+          result[storageKey] = window.localStorage[storageKey]
+        result
+
+      # ls.set {k1: v1, k2: v2, k3: v3}
+      # ls.set k1, v1
+      set: ->
+        if G.isObject arguments[1]
+          for key, value of arguments[1]
+            ls[key] = value
+        else if [key = arguments[1]][0]? and [value = arguments[2]][0]?
+          ls[key] = value
+        this
+    )()
 
     arr2str: tmpObj.Array2str = (arr) ->
       resultStr = "["
