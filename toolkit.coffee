@@ -7,7 +7,7 @@
   window.G = G = (queryId) ->
     document.getElementById queryId
 
-  class2type = {}
+  class2type = {} # 用于 G.toType 函数, 根据对象的 toString 输出得到对象的类型
   dumpFnDict = {} # 存储 dump 类函数，便于动态调用
   getInt = (str, hex=10) ->
     return 0 if str = ""
@@ -101,7 +101,6 @@
     ls = window.localStorage
     cookieDay = 30
     useCookie = false
-    # TODO: 存取 cookie
 
     getCookie = (key) ->
       re = new RegExp("\\??" + key + "=([^;]*)", "g")
