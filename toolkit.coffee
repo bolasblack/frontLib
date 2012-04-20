@@ -97,7 +97,21 @@
       jsonpTag.src = url + "?" + queryStr
       headElem.appendChild jsonpTag
 
-  G.localStorage = ((window)->
+  G.css =
+    get: (elem, styleName) ->
+      elemStyle = if document.defaultView? \
+        then document.defaultView.getComputedStyle elem \
+        else elem.currentStyle
+      unless styleName? then elemStyle else \
+        if styleName isnt "float" then elemStyle[styleName] \
+          else elemStyle["cssFloat"] or elemStyle["styleFloat"]
+
+    set: (elem, styleName, styleValue) ->
+      elemStyle = elem.style
+      elemStyle.cssText = elemStyle.cssText.replace new RegExp("\s*#{styleName}\s*:.*;+\s", "g"), ""
+      elemStyle.cssText += "#{styleName}: #{styleValue};"
+
+  G.localStorage = ((window) ->
     ls = window.localStorage
     cookieDay = 30
     useCookie = false
