@@ -1,30 +1,26 @@
 ((window, document)->
   [OP, AP] = [Object.prototype, Array.prototype]
-  slice = AP.slice
-  toString = OP.toString
-  hasOwn = OP.hasOwnProperty
 
   window.G = G = (queryId) ->
     document.getElementById queryId
-
-  class2type = {} # 用于 G.toType 函数, 根据对象的 toString 输出得到对象的类型
-  dumpFnDict = {} # 存储 dump 类函数，便于动态调用
-  getInt = (str, hex=10) ->
-    return 0 if str = ""
-    parseInt str, hex
-  
-  'Arguments Function Number String Date RegExp Array Boolean Object'.replace /[^, ]+/g, (typeName) ->
-    class2type["[object #{typeName}]"] = typeName.toLowerCase()
-    G["is#{typeName}"] = (obj) -> toString.call(obj) is "[object #{typeName}]"
+  G.t = (tagName) -> document.getElementsByTagName tagName
 
   G.extend = (target, origin) ->
     [target, origin] = [G, target] unless origin?
     (target[attr] = origin[attr] if origin[attr]?) for attr of origin
     target
 
-  G.extend
-    t: (tagName) -> document.getElementsByTagName tagName
+  # [[[ utils
+  slice = AP.slice
+  toString = OP.toString
+  hasOwn = OP.hasOwnProperty
 
+  class2type = {} # 用于 G.toType 函数, 根据对象的 toString 输出得到对象的类型
+  'Arguments Function Number String Date RegExp Array Boolean Object'.replace /[^, ]+/g, (typeName) ->
+    class2type["[object #{typeName}]"] = typeName.toLowerCase()
+    G["is#{typeName}"] = (obj) -> toString.call(obj) is "[object #{typeName}]"
+
+  G.extend
     has: (obj, attr) -> hasOwn.call obj, attr
     toType: (obj) -> unless obj? then String obj else class2type[toString.call obj] or "object"
     toArray: (obj) -> #form underscore
@@ -44,7 +40,11 @@
         return false
       key for key of obj
       key is undefined or G.has obj, key
+  # ]]]
 
+  # [[[ ajax
+  dumpFnDict = {} # 存储 dump 类函数，便于动态调用
+  G.extend
     arr2str: dumpFnDict.Array2str = (arr) ->
       resultStr = "["
       for v in arr
@@ -71,7 +71,7 @@
       for attr, value of obj
         tmpStr = encodeURIComponent(attr) + "=" + encodeURIComponent(G.dump value)
         queryArray.push tmpStr
-      return queryArray.join "&"
+      queryArray.join "&"
 
     jsonp: (url, queryData, callback) ->
       jsonpTag = document.createElement "script"
@@ -89,27 +89,49 @@
       window[funcName] = (data) -> callback data
       jsonpTag.onload = jsonpTag.onerror = jsonpTag.onreadystatechange = ->
         if /loaded|complete|undefined/.test jsonpTag.readyState
+          callback? r: jsonpTag.readyState
           jsonpTag.onload = jsonpTag.onerror = jsonpTag.onreadystatechange = null
-          console.log "jsonp state: ", jsonpTag.readyState
           headElem.removeChild jsonpTag
       queryData["callback"] = funcName
       jsonpTag.type = "text/javascript"
       jsonpTag.src = url + "?" + queryStr
       headElem.appendChild jsonpTag
+  # ]]]
 
-  G.css =
-    get: (elem, styleName) ->
+  # [[[ stylesheets
+  indexOf = AP.indexOf
+  G.extend
+    addClass: (elem, className) ->
+      elemClass = "#{elem.getAttribute("class") or ""} "
+      if !~indexOf.call elemClass, className
+        elem.setAttribute "class", elemClass + className
+      this
+
+    removeClass: (elem, className) ->
+      elemClass = elem.getAttribute("class") or ""
+      elem.setAttribute "class", "#{elemClass.replace new RegExp("\\s*#{className}\\s*"), ""}"
+      this
+
+    getCSS : (elem, styleName) ->
       elemStyle = if document.defaultView? \
         then document.defaultView.getComputedStyle elem \
         else elem.currentStyle
       unless styleName? then elemStyle else \
         if styleName isnt "float" then elemStyle[styleName] \
           else elemStyle["cssFloat"] or elemStyle["styleFloat"]
+      this
 
-    set: (elem, styleName, styleValue) ->
+    setCSS: (elem, styleName, styleValue) ->
       elemStyle = elem.style
       elemStyle.cssText = elemStyle.cssText.replace new RegExp("\s*#{styleName}\s*:.*;+\s", "g"), ""
       elemStyle.cssText += "#{styleName}: #{styleValue};"
+      this
+  # ]]]
+
+  # [[[ localStorage
+  getInt = (str, hex=10) ->
+    return 0 if str = ""
+    parseInt str, hex
 
   G.localStorage = ((window) ->
     ls = window.localStorage
@@ -118,7 +140,7 @@
 
     getCookie = (key) ->
       re = new RegExp("\\??" + key + "=([^;]*)", "g")
-      if [result = re.exec document.cookie][0]? then unescape(result[1]) else []._
+      if [result = re.exec document.cookie][0]? then unescape(result[1]) else null
 
     setCookie = (key, value) ->
       cookieStr = "#{key}=#{escape value}"
@@ -154,8 +176,10 @@
         setMethod key, value if key? and value?
       this
 
+    # TODO: 增加一个加 session 的功能
     useCookie: (bool) -> useCookie = bool
     cookieDay: (day) -> cookieDay = getInt day
   ) window
+  # ]]]
 
 ) window, document
