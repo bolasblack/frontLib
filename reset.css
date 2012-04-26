@@ -6,7 +6,7 @@ CSS Reset
   2. reset 的目的不是让默认样式在所有浏览器下一致，而是减少默认样式有可能带来的问题。
   3. reset 期望提供一套普适通用的基础样式。但没有银弹，推荐根据具体需求，裁剪和修改后再使用。
 
-Modified from KISSY CSS Reset 2012 Mar 6 16:04
+Modified from KISSY CSS Reset
 */
 
 /* 清除内外边距 */
@@ -23,7 +23,7 @@ th, td /* table elements 表格元素 */ {
 body,
 button, input, select, textarea /* for ie */ {
     font: 12px/1.5 "微软雅黑", tahoma, arial, \5b8b\4f53, Verdana, Geneva, sans-serif, "Myriad Pro";
-    -webkit-text-size-adjust: none;
+    -webkit-text-size-adjust: none; /* webkit 系的字体大小限制 */
 }
 h1, h2, h3, h4, h5, h6 { font-size: 100%; }
 address, cite, dfn, em, var { font-style: normal; } /* 将斜体扶正 */
