@@ -1,30 +1,30 @@
 [submodule "bean"]
-	path = bean
+	path = bean-event
 	url = https://github.com/fat/bean.git
 [submodule "domready"]
 	path = domready
 	url = https://github.com/ded/domready.git
 [submodule "qwery"]
-	path = qwery
+	path = qwery-selector
 	url = https://github.com/ded/qwery.git
 [submodule "bonzo"]
-	path = bonzo
+	path = bonzo-dom
 	url = https://github.com/ded/bonzo.git
 [submodule "bowser"]
 	path = bowser
 	url = https://github.com/ded/bowser.git
 [submodule "reqwest"]
-	path = reqwest
+	path = reqwest-ajax
 	url = https://github.com/ded/reqwest.git
 [submodule "morpheus-animation"]
 	path = morpheus-animation
 	url = https://github.com/ded/morpheus.git
 [submodule "valentine"]
-	path = valentine
+	path = valentine-functional
 	url = https://github.com/ded/valentine.git
 [submodule "Kizzy"]
-	path = Kizzy
+	path = Kizzy-localStorage
 	url = https://github.com/ded/Kizzy.git
 [submodule "sink-test"]
-	path = sink-test
+	path = sink-test-UnitTest
 	url = https://github.com/ded/sink-test.git
