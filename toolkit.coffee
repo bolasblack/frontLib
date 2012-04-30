@@ -3,6 +3,13 @@
 
   window.G = G = (queryId) ->
     document.getElementById queryId
+  
+  if wondow.define?
+    define (require, exports, module) -> G
+  else
+    G.old = window.G if window.G?
+    window.G = G
+
   G.t = (tagName) -> document.getElementsByTagName tagName
 
   G.extend = (target, origin) ->
@@ -42,6 +49,37 @@
       return slice.call obj if G.isArguments obj
       return obj.toArray() if obj.toArray? and G.isFunction obj.toArray
       v for k, v of obj
+  # ]]]
+
+  # [[[ String
+  G.extend
+    remove: (index, length=1) ->
+      deltaStr = @substr index, length
+      @replace deltaStr, ''
+
+    charUpperCase: (index, length=1) ->
+      strList = @split ''
+      for i in [0...length]
+        newIndex = index + i
+        strList[newIndex] = strList[newIndex].toUpperCase()
+      strList.join ''
+
+    getDelta: (oldStr, newStr) ->
+      resultList = []
+      delta = ''
+      delingIndex = 0
+      contr = (oldStr, newStr, index) ->
+        while newStr[index] isnt oldStr[index]
+          delta += newStr[index]
+          newStr = newStr.remove index
+      deling = (oldStr, newStr, index) ->
+        if newStr[index] not in oldStr
+          oldStr = oldStr.remove(delingIndex)
+          newStr = newStr.remove(index)
+          deling index
+      for i in newStr
+        deling i if oldStr.length
+      [oldStr, newStr]
   # ]]]
 
   # [[[ ajax
@@ -108,13 +146,15 @@
 
   # [[[ localStorage
   getInt = (str, hex=10) ->
-    return 0 if str = ""
+    return 0 if str is ""
     parseInt str, hex
 
   G.localStorage = ((window) ->
     ls = window.localStorage
+    ss = window.sessionStorage
     useCookie = false
-    cookieTime = "30d"
+    useSession = false
+    storageTime = "30d"
 
     getCookie = (key) ->
       re = new RegExp("\\??" + key + "=([^;]*)", "g")
@@ -126,21 +166,27 @@
     # setCookie "name","hayden","20s"
     setCookie = (key, value, time) ->
       getTime = (str) ->
-        timeCount = getInt str.substring 1, str.length
+        timeCount = getInt str.slice 0, -1
         timeUnit = str.substr -1
         switch timeUnit
           when "s" then timeCount * 1000
           when "h" then timeCount * 60 * 60 * 1000
           when "d" then timeCount * 24 * 60 * 60 * 1000
+          else useSession = true
 
       outTime = getTime time
       cookieStr = "#{key}=#{escape value}"
       [exp = new Date()][0].setTime exp.getTime() + outTime
-      cookieStr += ";expires=#{exp.toGMTString()};path=/"
+      cookieStr += ";expires=#{exp.toGMTString()}" unless useSession
+      cookieStr += ";path=/"
       document.cookie = cookieStr
 
-    getLocalStorage = (key) -> ls[key]
-    setLocalStorage = (key, value) -> ls[key] = value
+    getLocalStorage = (key) ->
+      storage = if useSession then ss else ls
+      storage[key]
+    setLocalStorage = (key, value) ->
+      storage = if useSession then ss else ls
+      storage[key] = value
 
     [getMethod, setMethod] = if ls? then [getLocalStorage, setLocalStorage] else [getCookie, setCookie]
 
@@ -161,15 +207,23 @@
     set: ->
       setMethod = setCookie if useCookie
       if G.isObject arguments[0]
-        setMethod key, value, cookieTime for key, value of arguments[0]
+        setMethod key, value, storageTime for key, value of arguments[0]
       else
         [key, value] = arguments
-        setMethod key, value, cookieTime if key? and value?
+        setMethod key, value, storageTime if key? and value?
       this
 
-    # TODO: 增加一个加 session 的功能
-    cookieTime: (time) -> cookieTime = time
-    useCookie: (boolInput) -> useCookie = boolInput
+    storageTime: (time) ->
+      return `useSession = true, this` if getInt(time) in [0, NaN]
+      time = "#{time}s" if G.isNumber time
+      return `useSession = true, this` if time.slice(-1) in ["s", "h", "d"]
+      [storageTime, useSession] = [time, false]
+      this
+
+    useCookie: (boolInput) ->
+      useCookie = boolInput
+      this
+
   ) window
   # ]]]
 
