@@ -21,14 +21,7 @@
     G["is#{typeName}"] = (obj) -> toString.call(obj) is "[object #{typeName}]"
 
   G.extend
-    has: (obj, attr) -> hasOwn.call obj, attr
     toType: (obj) -> unless obj? then String obj else class2type[toString.call obj] or "object"
-    toArray: (obj) -> #form underscore
-      return [] unless obj?
-      return slice.call obj if G.isArray obj
-      return slice.call obj if G.isArguments obj
-      return obj.toArray() if obj.toArray? and G.isFunction obj.toArray
-      v for k, v of obj
 
     isWindow: (obj) -> obj is obj.window
     isNode: (obj) -> obj.nodeType?
@@ -40,6 +33,15 @@
         return false
       key for key of obj
       key is undefined or G.has obj, key
+
+  G.extend
+    has: (obj, attr) -> hasOwn.call obj, attr
+    toArray: (obj) -> #form underscore
+      return [] unless obj?
+      return slice.call obj if G.isArray obj
+      return slice.call obj if G.isArguments obj
+      return obj.toArray() if obj.toArray? and G.isFunction obj.toArray
+      v for k, v of obj
   # ]]]
 
   # [[[ ajax
@@ -72,30 +74,6 @@
         tmpStr = encodeURIComponent(attr) + "=" + encodeURIComponent(G.dump value)
         queryArray.push tmpStr
       queryArray.join "&"
-
-    jsonp: (url, queryData, callback) ->
-      jsonpTag = document.createElement "script"
-      headElem = document.head || document.getElementsByTagName('head')[0] || document.documentElement
-      funcName = "jsonp" + new Date().getTime()
-      queryStr = ""
-
-      if [queryType = typeof queryData][0] is "object"
-        queryStr = @param queryData
-      else if typeof queryType is "string"
-        queryStr = encodeURIComponent queryData
-      else unless callback?
-        [callback, queryData] = [queryData, null]
-
-      window[funcName] = (data) -> callback data
-      jsonpTag.onload = jsonpTag.onerror = jsonpTag.onreadystatechange = ->
-        if /loaded|complete|undefined/.test jsonpTag.readyState
-          callback? r: jsonpTag.readyState
-          jsonpTag.onload = jsonpTag.onerror = jsonpTag.onreadystatechange = null
-          headElem.removeChild jsonpTag
-      queryData["callback"] = funcName
-      jsonpTag.type = "text/javascript"
-      jsonpTag.src = url + "?" + queryStr
-      headElem.appendChild jsonpTag
   # ]]]
 
   # [[[ stylesheets
