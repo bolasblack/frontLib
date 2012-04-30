@@ -135,16 +135,29 @@
 
   G.localStorage = ((window) ->
     ls = window.localStorage
-    cookieDay = 30
     useCookie = false
+    cookieTime = "30d"
 
     getCookie = (key) ->
       re = new RegExp("\\??" + key + "=([^;]*)", "g")
       if [result = re.exec document.cookie][0]? then unescape(result[1]) else null
 
-    setCookie = (key, value) ->
+    # s是指秒，如20s代表20秒
+    # h是指小时，如12h代表12小时
+    # d是指天数，如30d代表30天
+    # setCookie "name","hayden","20s"
+    setCookie = (key, value, time) ->
+      getTime = (str) ->
+        timeCount = getInt str.substring 1, str.length
+        timeUnit = str.substr -1
+        switch timeUnit
+          when "s" then timeCount * 1000
+          when "h" then timeCount * 60 * 60 * 1000
+          when "d" then timeCount * 24 * 60 * 60 * 1000
+
+      outTime = getTime time
       cookieStr = "#{key}=#{escape value}"
-      [exp = new Date()][0].setTime exp.getTime() + 30 * 24 * 60 * 60 * 1000
+      [exp = new Date()][0].setTime exp.getTime() + outTime
       cookieStr += ";expires=#{exp.toGMTString()};path=/"
       document.cookie = cookieStr
 
@@ -170,15 +183,15 @@
     set: ->
       setMethod = setCookie if useCookie
       if G.isObject arguments[0]
-        setMethod key, value for key, value of arguments[0]
+        setMethod key, value, cookieTime for key, value of arguments[0]
       else
         [key, value] = arguments
-        setMethod key, value if key? and value?
+        setMethod key, value, cookieTime if key? and value?
       this
 
     # TODO: 增加一个加 session 的功能
-    useCookie: (bool) -> useCookie = bool
-    cookieDay: (day) -> cookieDay = getInt day
+    cookieTime: (time) -> cookieTime = time
+    useCookie: (boolInput) -> useCookie = boolInput
   ) window
   # ]]]
 
