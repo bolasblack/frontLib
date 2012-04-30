@@ -1,8 +1,14 @@
 ((window, document)->
   [OP, AP] = [Object.prototype, Array.prototype]
 
-  window.G = G = (queryId) ->
+  G = (queryId) ->
     document.getElementById queryId
+
+  if window["define"]?
+    define (require, exports, module) -> G
+  else
+    window.G = G
+
   G.t = (tagName) -> document.getElementsByTagName tagName
 
   G.extend = (target, origin) ->
@@ -130,7 +136,7 @@
 
   # [[[ localStorage
   getInt = (str, hex=10) ->
-    return 0 if str = ""
+    return 0 if str is ""
     parseInt str, hex
 
   G.localStorage = ((window) ->
@@ -147,9 +153,10 @@
     # d是指天数，如30d代表30天
     # setCookie "name","hayden","20s"
     setCookie = (key, value, time) ->
-      getTime = (str) ->
-        timeCount = getInt str.substring 1, str.length
-        timeUnit = str.substr -1
+      getTime = (time) ->
+        timeCount = getInt time.slice 0, -1
+        timeUnit = time.slice -1
+        console.log "timeCount: #{timeCount}, timeUnit: #{timeUnit}"
         switch timeUnit
           when "s" then timeCount * 1000
           when "h" then timeCount * 60 * 60 * 1000
@@ -159,6 +166,7 @@
       cookieStr = "#{key}=#{escape value}"
       [exp = new Date()][0].setTime exp.getTime() + outTime
       cookieStr += ";expires=#{exp.toGMTString()};path=/"
+      console.log "time: #{time}, outTime: #{outTime}, cookieStr: #{cookieStr}"
       document.cookie = cookieStr
 
     getLocalStorage = (key) -> ls[key]
