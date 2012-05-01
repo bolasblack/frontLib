@@ -4,9 +4,10 @@
   G = (queryId) ->
     document.getElementById queryId
 
-  if window["define"]?
+  if wondow.define?
     define (require, exports, module) -> G
   else
+    G.old = window.G if window.G?
     window.G = G
 
   G.t = (tagName) -> document.getElementsByTagName tagName
@@ -27,14 +28,7 @@
     G["is#{typeName}"] = (obj) -> toString.call(obj) is "[object #{typeName}]"
 
   G.extend
-    has: (obj, attr) -> hasOwn.call obj, attr
     toType: (obj) -> unless obj? then String obj else class2type[toString.call obj] or "object"
-    toArray: (obj) -> #form underscore
-      return [] unless obj?
-      return slice.call obj if G.isArray obj
-      return slice.call obj if G.isArguments obj
-      return obj.toArray() if obj.toArray? and G.isFunction obj.toArray
-      v for k, v of obj
 
     isWindow: (obj) -> obj is obj.window
     isNode: (obj) -> obj.nodeType?
@@ -46,6 +40,46 @@
         return false
       key for key of obj
       key is undefined or G.has obj, key
+
+  G.extend
+    has: (obj, attr) -> hasOwn.call obj, attr
+    toArray: (obj) -> #form underscore
+      return [] unless obj?
+      return slice.call obj if G.isArray obj
+      return slice.call obj if G.isArguments obj
+      return obj.toArray() if obj.toArray? and G.isFunction obj.toArray
+      v for k, v of obj
+  # ]]]
+
+  # [[[ String
+  G.extend
+    remove: (index, length=1) ->
+      deltaStr = @substr index, length
+      @replace deltaStr, ''
+
+    charUpperCase: (index, length=1) ->
+      strList = @split ''
+      for i in [0...length]
+        newIndex = index + i
+        strList[newIndex] = strList[newIndex].toUpperCase()
+      strList.join ''
+
+    getDelta: (oldStr, newStr) ->
+      resultList = []
+      delta = ''
+      delingIndex = 0
+      contr = (oldStr, newStr, index) ->
+        while newStr[index] isnt oldStr[index]
+          delta += newStr[index]
+          newStr = newStr.remove index
+      deling = (oldStr, newStr, index) ->
+        if newStr[index] not in oldStr
+          oldStr = oldStr.remove(delingIndex)
+          newStr = newStr.remove(index)
+          deling index
+      for i in newStr
+        deling i if oldStr.length
+      [oldStr, newStr]
   # ]]]
 
   # [[[ ajax
@@ -78,30 +112,6 @@
         tmpStr = encodeURIComponent(attr) + "=" + encodeURIComponent(G.dump value)
         queryArray.push tmpStr
       queryArray.join "&"
-
-    jsonp: (url, queryData, callback) ->
-      jsonpTag = document.createElement "script"
-      headElem = document.head || document.getElementsByTagName('head')[0] || document.documentElement
-      funcName = "jsonp" + new Date().getTime()
-      queryStr = ""
-
-      if [queryType = typeof queryData][0] is "object"
-        queryStr = @param queryData
-      else if typeof queryType is "string"
-        queryStr = encodeURIComponent queryData
-      else unless callback?
-        [callback, queryData] = [queryData, null]
-
-      window[funcName] = (data) -> callback data
-      jsonpTag.onload = jsonpTag.onerror = jsonpTag.onreadystatechange = ->
-        if /loaded|complete|undefined/.test jsonpTag.readyState
-          callback? r: jsonpTag.readyState
-          jsonpTag.onload = jsonpTag.onerror = jsonpTag.onreadystatechange = null
-          headElem.removeChild jsonpTag
-      queryData["callback"] = funcName
-      jsonpTag.type = "text/javascript"
-      jsonpTag.src = url + "?" + queryStr
-      headElem.appendChild jsonpTag
   # ]]]
 
   # [[[ stylesheets
@@ -141,8 +151,10 @@
 
   G.localStorage = ((window) ->
     ls = window.localStorage
+    ss = window.sessionStorage
     useCookie = false
-    cookieTime = "30d"
+    useSession = false
+    storageTime = "30d"
 
     getCookie = (key) ->
       re = new RegExp("\\??" + key + "=([^;]*)", "g")
@@ -153,24 +165,28 @@
     # d是指天数，如30d代表30天
     # setCookie "name","hayden","20s"
     setCookie = (key, value, time) ->
-      getTime = (time) ->
-        timeCount = getInt time.slice 0, -1
-        timeUnit = time.slice -1
-        console.log "timeCount: #{timeCount}, timeUnit: #{timeUnit}"
+      getTime = (str) ->
+        timeCount = getInt str.slice 0, -1
+        timeUnit = str.substr -1
         switch timeUnit
           when "s" then timeCount * 1000
           when "h" then timeCount * 60 * 60 * 1000
           when "d" then timeCount * 24 * 60 * 60 * 1000
+          else useSession = true
 
       outTime = getTime time
       cookieStr = "#{key}=#{escape value}"
       [exp = new Date()][0].setTime exp.getTime() + outTime
-      cookieStr += ";expires=#{exp.toGMTString()};path=/"
-      console.log "time: #{time}, outTime: #{outTime}, cookieStr: #{cookieStr}"
+      cookieStr += ";expires=#{exp.toGMTString()}" unless useSession
+      cookieStr += ";path=/"
       document.cookie = cookieStr
 
-    getLocalStorage = (key) -> ls[key]
-    setLocalStorage = (key, value) -> ls[key] = value
+    getLocalStorage = (key) ->
+      storage = if useSession then ss else ls
+      storage[key]
+    setLocalStorage = (key, value) ->
+      storage = if useSession then ss else ls
+      storage[key] = value
 
     [getMethod, setMethod] = if ls? then [getLocalStorage, setLocalStorage] else [getCookie, setCookie]
 
@@ -191,15 +207,23 @@
     set: ->
       setMethod = setCookie if useCookie
       if G.isObject arguments[0]
-        setMethod key, value, cookieTime for key, value of arguments[0]
+        setMethod key, value, storageTime for key, value of arguments[0]
       else
         [key, value] = arguments
-        setMethod key, value, cookieTime if key? and value?
+        setMethod key, value, storageTime if key? and value?
       this
 
-    # TODO: 增加一个加 session 的功能
-    cookieTime: (time) -> cookieTime = time
-    useCookie: (boolInput) -> useCookie = boolInput
+    storageTime: (time) ->
+      return `useSession = true, this` if getInt(time) in [0, NaN]
+      time = "#{time}s" if G.isNumber time
+      return `useSession = true, this` if time.slice(-1) in ["s", "h", "d"]
+      [storageTime, useSession] = [time, false]
+      this
+
+    useCookie: (boolInput) ->
+      useCookie = boolInput
+      this
+
   ) window
   # ]]]
 
