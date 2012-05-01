@@ -4,7 +4,7 @@
   G = (queryId) ->
     document.getElementById queryId
 
-  if wondow.define?
+  if window["define"]?
     define (require, exports, module) -> G
   else
     G.old = window.G if window.G?
@@ -166,7 +166,7 @@
     # setCookie "name","hayden","20s"
     setCookie = (key, value, time) ->
       getTime = (str) ->
-        timeCount = getInt str.slice 0, -1
+        timeCount = getInt "#{str}".slice 0, -1
         timeUnit = str.substr -1
         switch timeUnit
           when "s" then timeCount * 1000
