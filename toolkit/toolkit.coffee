@@ -12,11 +12,6 @@
 
   G.t = (tagName) -> document.getElementsByTagName tagName
 
-  G.extend = (target, origin) ->
-    [target, origin] = [G, target] unless origin?
-    (target[attr] = origin[attr] if origin[attr]?) for attr of origin
-    target
-
   # [[[ utils
   slice = AP.slice
   toString = OP.toString
@@ -27,19 +22,47 @@
     class2type["[object #{typeName}]"] = typeName.toLowerCase()
     G["is#{typeName}"] = (obj) -> toString.call(obj) is "[object #{typeName}]"
 
+  G.isObject = G.isPlainObject = (obj) -> #from jquery 1.7.3 pre
+    return false if !obj or G.toType(obj) isnt "object" or obj.nodeType or G.isWindow(obj)
+    try
+      return false if obj.constructor and !G.has(obj, "constructor") and !G.has(obj.constructor.prototype, "isPrototypeOf")
+    catch e
+      return false
+    key for key of obj
+    key is undefined or G.has obj, key
+
+  G.extend = -> #form jquery 1.7.3 pre
+    target = arguments[0] or {}
+    length = arguments.length
+    deep = false
+    i = 1
+    if G.isBoolean target
+      deep = target
+      target = arguments[1]
+      i = 2
+    target = {} if typeof target isnt "object" and not G.isFunction target
+    [target, i] = [this, i - 1] if length is i
+    for i in [i...arguments.length]
+      if (options = arguments[i])?
+        for name, copy of options
+          src = target[name]
+          continue if target is copy
+          if deep and copy and (G.isPlainObject(copy) or (copyIsArray = G.isArray copy))
+            if copyIsArray
+              copyIsArray = false
+              clone = src and if G.isArray src then src else []
+            else
+              clone = src and if G.isPlainObject src then src else {}
+            target[name] = G.extend deep, clone, copy
+          else if copy?
+            target[name] = copy
+    target
+
   G.extend
     toType: (obj) -> unless obj? then String obj else class2type[toString.call obj] or "object"
 
     isWindow: (obj) -> obj is obj.window
     isNode: (obj) -> obj.nodeType?
-    isObject: (obj) -> #from jquery 1.7.3 pre
-      return false if !obj or G.toType(obj) isnt "object" or obj.nodeType or G.isWindow(obj)
-      try
-        return false if obj.constructor and !G.has(obj, "constructor") and !G.has(obj.constructor.prototype, "isPrototypeOf")
-      catch e
-        return false
-      key for key of obj
-      key is undefined or G.has obj, key
 
   G.extend
     has: (obj, attr) -> hasOwn.call obj, attr
@@ -53,10 +76,6 @@
 
   # [[[ String
   G.extend
-    remove: (index, length=1) ->
-      deltaStr = @substr index, length
-      @replace deltaStr, ''
-
     charUpperCase: (index, length=1) ->
       strList = @split ''
       for i in [0...length]
