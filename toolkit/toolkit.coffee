@@ -4,7 +4,7 @@
   window.G = G = (queryId) ->
     document.getElementById queryId
   
-  if wondow.define?
+  if window.define?
     define (require, exports, module) -> G
   else
     G.old = window.G if window.G?
@@ -21,15 +21,6 @@
   'Arguments Function Number String Date RegExp Array Boolean Object'.replace /[^, ]+/g, (typeName) ->
     class2type["[object #{typeName}]"] = typeName.toLowerCase()
     G["is#{typeName}"] = (obj) -> toString.call(obj) is "[object #{typeName}]"
-
-  G.isObject = G.isPlainObject = (obj) -> #from jquery 1.7.3 pre
-    return false if !obj or G.toType(obj) isnt "object" or obj.nodeType or G.isWindow(obj)
-    try
-      return false if obj.constructor and !G.has(obj, "constructor") and !G.has(obj.constructor.prototype, "isPrototypeOf")
-    catch e
-      return false
-    key for key of obj
-    key is undefined or G.has obj, key
 
   G.extend = -> #form jquery 1.7.3 pre
     target = arguments[0] or {}
@@ -54,15 +45,34 @@
             else
               clone = src and if G.isPlainObject src then src else {}
             target[name] = G.extend deep, clone, copy
-          else if copy?
+          else if copy isnt undefined
             target[name] = copy
     target
 
   G.extend
     toType: (obj) -> unless obj? then String obj else class2type[toString.call obj] or "object"
 
-    isWindow: (obj) -> obj is obj.window
+    isWindow: (obj) -> obj? and obj is obj.window
     isNode: (obj) -> obj.nodeType?
+    isElement: (obj) -> obj? and obj.nodeType is 1
+    isFinite: (obj) -> G.isNumber(obj) and isFinite obj
+    isObject: (obj) -> obj is Object obj
+    isNaN: (obj) -> obj isnt obj
+    isNull: (obj) -> obj is null
+    isUndefined: (obj) -> obj is undefined
+    isEmpty: (obj) ->
+      return true unless obj?
+      return obj.length is 0 if G.isArray(obj) or G.isString obj
+      (return false if G.has obj, key) for key of obj
+      true
+    isPlainObject: (obj) -> #from jquery 1.7.3 pre
+      return false if !obj or G.toType(obj) isnt "object" or obj.nodeType or G.isWindow(obj)
+      try
+        return false if obj.constructor and !G.has(obj, "constructor") and !G.has(obj.constructor.prototype, "isPrototypeOf")
+      catch e
+        return false
+      key for key of obj
+      key is undefined or G.has obj, key
 
   G.extend
     has: (obj, attr) -> hasOwn.call obj, attr
