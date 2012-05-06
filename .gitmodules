@@ -28,3 +28,6 @@
 [submodule "sink-test"]
 	path = sink-test-UnitTest
 	url = https://github.com/ded/sink-test.git
+[submodule "qunit"]
+	path = qunit
+	url = https://github.com/jquery/qunit.git
