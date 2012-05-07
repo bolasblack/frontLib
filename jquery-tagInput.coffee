@@ -4,7 +4,6 @@ $.fn.extend
       inputSelector: ""
       originData: null # {name: "xxx", value: "xxx"} || [...]
       inputHandler: null # function(inputValue) {/* code */; return {name: "xxx", value: "xxx"};}
-      afterHandler: null # function(_tags) {}
 
     opts = $.extend defOpt, options
     checkReg = /[^A-Za-z0-9_\u4E00-\u9FA5]+/gi # 匹配非法字符
@@ -18,20 +17,18 @@ $.fn.extend
     createTag = (name, value) =>
       insertInput = (resultTag) ->
         try
-          $reallyInputElem.val resultTag
         catch error
           $reallyInputElem.val "#{resultTag}"
 
-      return if ~_tags.indexOf value
+      if ~_tags.indexOf value
+        return @trigger "tagExist.tagInput"
       $span = $('<span>', class: "tag")
         .append("<strong>#{name}</strong>")
         .append "<a>X</a>"
       @append $span
       _tags.push value
-      if opts.afterHandler?
-        opts.afterHandler _tags, insertInput
-      else
-        insertInput _tags
+      $reallyInputElem.val _tags
+      @trigger "tagInserted.tagInput"
 
     addTag = (value) ->
       name = value
