@@ -5,9 +5,11 @@
     mainMenuClassName: "mainMenu"
     subMenuClassName: "subMenu"
     itemClassName: "menuItem"
-    menuData: []
     beforeContextMenuShow: (contextMenuEvent) ->
     afterItemSelected: (clickEvent) ->
+    emptyMenuClassName: "emptyMenu"
+    emptyMenuContent: "No item"
+    menuData: []
 
   opt = {}
   $trigger = $menu = []._
@@ -49,18 +51,27 @@
           queryStr = "#{queryStr}:not(#{strDisabledMenuItemIdList})"
         false
 
-    createMenuItem: (itemData) ->
-      $elem = $("<li>", class: opt.itemClassName).text itemData.name
+    createMenuItem: (itemData, className, extraDataName) ->
+      itemClass = opt.itemClassName
+      itemClass += " #{className}" if className?
+      $elem = $("<li>", class: itemClass).text itemData.name
+      $elem.data(extraDataName, itemData[extraDataName]) if extraDataName?
       if [handler = itemData.handler][0]?
         for eventType, callback of handler
           $elem.on eventType, callback if handler.hasOwnProperty eventType
       $elem
 
-    createSubMenu: (menuData) ->
-      $subMenu = $ "<ul>", class: opt.subMenuClassName
-      for item in menuData
-        $childElem = @createMenuItem item
-        $childElem.append @createSubMenu(item["items"]) if $.isArray item["items"]
+    createSubMenu: (menuData, className, extraDataName) ->
+      [menuData, className, extraDataName] = [[], menuData, className] unless $.isArray menuData
+      if menuData.length < 1
+        return @createSubMenu [{name: opt.emptyMenuContent}], opt.emptyMenuClassName
+      menuClass = opt.subMenuClassName
+      menuClass += " #{className}" if className?
+      $subMenu = $ "<ul>", class: menuClass
+      for itemData in menuData
+        $childElem = @createMenuItem itemData, "", extraDataName
+        if $.isArray itemData["items"]
+          $childElem.append @createSubMenu itemData["items"], "", extraDataName
         $subMenu.append $childElem
       $subMenu
 
@@ -84,15 +95,12 @@
         then $.grep(contextMenu.disabledMenuItemIdList, (v, i) -> !!~$.inArray v, o) \
         else []
 
-    #  Disable context menu(s)
     disableContextMenu: ->
       $trigger.data('contextMenu').isEnabled = false
 
-    #  Enable context menu(s)
     enableContextMenu: ->
       $trigger.data('contextMenu').isEnabled = true
 
-    #  Destroy context menu(s)
     destroyContextMenu: ->
       $trigger.removeData 'contextMenu'
 
