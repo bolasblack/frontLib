@@ -2,14 +2,13 @@
   [OP, AP] = [Object.prototype, Array.prototype]
 
   G = (queryId) -> document.getElementById queryId
+  G.t = (tagName) -> document.getElementsByTagName tagName
 
   if window["define"]?
     define (require, exports, module) -> G
   else
     G.old = window.G if window.G?
     window.G = G
-
-  G.t = (tagName) -> document.getElementsByTagName tagName
 
   # [[[ utils
   slice = AP.slice
