@@ -54,6 +54,7 @@
     createMenuItem: (itemData, className, extraDataName) ->
       itemClass = opt.itemClassName
       itemClass += " #{className}" if className?
+      itemClass += " #{dataClassName}" if dataClassName = itemData["className"]
       $elem = $("<li>", class: itemClass).text itemData.name
       $elem.data(extraDataName, itemData[extraDataName]) if extraDataName?
       if [handler = itemData.handler][0]?
@@ -67,6 +68,7 @@
         return @createSubMenu [{name: opt.emptyMenuContent}], opt.emptyMenuClassName
       menuClass = opt.subMenuClassName
       menuClass += " #{className}" if className?
+      menuClass += " #{dataClassName}" if dataClassName = menuData["className"]
       $subMenu = $ "<ul>", class: menuClass
       for itemData in menuData
         $childElem = @createMenuItem itemData, "", extraDataName
