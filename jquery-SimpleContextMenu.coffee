@@ -9,6 +9,7 @@
     afterItemSelected: (clickEvent) ->
     emptyMenuClassName: "emptyMenu"
     emptyMenuContent: "No item"
+    eventClass: "simpleContextMenu"
     menuData: []
 
   opt = {}
@@ -29,13 +30,13 @@
         isEnabled: true
         disabledMenuItemIdList: []
 
-      $(document).on 'mousedown', (event) =>
+      $(document).on "mousedown.#{opt.eventClass}", (event) =>
         @hideMenu() unless !!~$trigger.children().indexOf event.target
 
-      $menu.on 'mousedown', "#{opt.itemClass}", (e) ->
+      $menu.on "mousedown.#{opt.eventClass}", "#{opt.itemClass}", (e) ->
         opt.afterItemSelected? e
 
-      $trigger.on 'contextmenu', (e) =>
+      $trigger.on "contextmenu.#{opt.eventClass}", (e) =>
         contextMenu = $trigger.data 'contextMenu'
         return unless contextMenu?
         return unless contextMenu.isEnabled
@@ -59,7 +60,7 @@
       $elem.data(extraDataName, itemData[extraDataName]) if extraDataName?
       if [handler = itemData.handler][0]?
         for eventType, callback of handler
-          $elem.on eventType, callback if handler.hasOwnProperty eventType
+          $elem.on "#{eventType}.#{opt.eventClass}", callback if handler.hasOwnProperty eventType
       $elem
 
     createSubMenu: (menuData, className, extraDataName) ->
