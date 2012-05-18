@@ -7,12 +7,12 @@ urlObject = if window.URL then window.URL else window.webkitURL
 handleFileList = (config, fileList) ->
   $imgArea = $ config.imgArea
   return if fileList.length is 0
-  $imgList = $ createImg fileList
+  $imgList = $(createImg fileList).addClass "dragImg"
   if config.mulitPic isnt true # 如果只允许存在一张图片
     $existImg = $imgArea.find ".dragImg"
     replaceImg $existImg, $imgList if $existImg.length > 0
   else
-    $imgArea.append $imgList.addClass "dragImg"
+    $imgArea.append $imgList
 
 createImg = (fileList) ->
   imgList = []
