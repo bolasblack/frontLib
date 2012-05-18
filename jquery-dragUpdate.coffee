@@ -7,11 +7,12 @@ urlObject = if window.URL then window.URL else window.webkitURL
 handleFileList = (config, fileList) ->
   $imgArea = $ config.imgArea
   return if fileList.length is 0
+  $imgList = $ createImg fileList
   if config.mulitPic isnt true # 如果只允许存在一张图片
     $existImg = $imgArea.find ".dragImg"
-    destroyImg $existImg if $existImg.length > 0
-  $imgList = $ createImg fileList
-  $imgArea.append $imgList.addClass "dragImg"
+    replaceImg $existImg, $imgList if $existImg.length > 0
+  else
+    $imgArea.append $imgList.addClass "dragImg"
 
 createImg = (fileList) ->
   imgList = []
@@ -24,10 +25,16 @@ createImg = (fileList) ->
     imgList.push imgTag
   imgList
 
-destroyImg = ($imgElem) ->
+revokeImg = ($imgElem) ->
   $imgElem.each (index, imgElem) ->
     urlObject.revokeObjectURL imgElem.file
-  $imgElem.detach()
+  $imgElem
+
+destroyImg = ($imgElem) ->
+  revokeImg($imgElem).detach()
+
+replaceImg = ($oldImg, $newImg) ->
+  revokeImg($oldImg).replaceWith $newImg
 
 dropHandler = (e) ->
   e.preventDefault()
