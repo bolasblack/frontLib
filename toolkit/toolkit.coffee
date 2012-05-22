@@ -84,6 +84,10 @@
 
   # [[[ String
   G.extend
+    splTpl: (tpl, data) ->
+      tpl.replace /{{(.*?)}}/igm, ($, $1) ->
+        if data[$1] then data[$1] else $
+
     charUpperCase: (index, length=1) ->
       strList = @split ''
       for i in [0...length]
