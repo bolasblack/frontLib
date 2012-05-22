@@ -143,16 +143,19 @@
 
   # [[[ stylesheets
   indexOf = AP.indexOf
+  classRe = (className) ->
+    new RegExp "(\\s+#{className}|\\s+#{className}\\s+|#{className}\\s+)", "g"
+
   G.extend
     addClass: (elem, className) ->
       elemClass = "#{elem.getAttribute("class") or ""} "
-      if !~indexOf.call elemClass, className
+      unless elemClass.match(classRe(className))?
         elem.setAttribute "class", elemClass + className
       this
 
     removeClass: (elem, className) ->
       elemClass = elem.getAttribute("class") or ""
-      elem.setAttribute "class", "#{elemClass.replace new RegExp("\\s*#{className}\\s*"), ""}"
+      elem.setAttribute "class", elemClass.replace classRe(className), ""
       this
 
     getCSS : (elem, styleName) ->
@@ -166,7 +169,8 @@
 
     setCSS: (elem, styleName, styleValue) ->
       elemStyle = elem.style
-      elemStyle.cssText = elemStyle.cssText.replace new RegExp("\s*#{styleName}\s*:.*;+\s", "g"), ""
+      # TODO: 在 IE6 IE8 中测试
+      elemStyle.cssText = elemStyle.cssText.replace new RegExp("#{styleName}\s:.*;+\s", "g"), ""
       elemStyle.cssText += "#{styleName}: #{styleValue};"
       this
   # ]]]
