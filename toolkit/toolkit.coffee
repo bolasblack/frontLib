@@ -19,6 +19,9 @@
   'Arguments Function Number String Date RegExp Array Boolean Object'.replace /[^, ]+/g, (typeName) ->
     class2type["[object #{typeName}]"] = typeName.toLowerCase()
     G["is#{typeName}"] = (obj) -> toString.call(obj) is "[object #{typeName}]"
+  unless G.isArguments arguments
+    G.isArguments = (obj) ->
+      !!(obj and G.has obj, "callee")
 
   G.extend = -> #form jquery 1.7.3 pre
     target = arguments[0] or {}

@@ -52,7 +52,6 @@ window.G?.localStorage = ((window) ->
 
   doActionLoop = (actMethod, args) ->
     realArgs = if G.isArray args[0] then args[0] else G.toArray args
-    # TODO: 在 IE8 下，这时的 realArgs 是一个空数组
     return actMethod realArgs[0] if realArgs.length is 1
     result = {}
     for storageKey in realArgs
