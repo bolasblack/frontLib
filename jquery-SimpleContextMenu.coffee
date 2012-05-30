@@ -5,11 +5,11 @@
     mainMenuClassName: "mainMenu"
     subMenuClassName: "subMenu"
     itemClassName: "menuItem"
-    beforeContextMenuShow: (contextMenuEvent) ->
-    afterItemSelected: (clickEvent) ->
     emptyMenuClassName: "emptyMenu"
     emptyMenuContent: "No item"
     eventClass: "simpleContextMenu"
+    afterItemSelected: (clickEvent) ->
+    beforeContextMenuShow: (contextMenuEvent) ->
     menuData: []
 
   opt = {}

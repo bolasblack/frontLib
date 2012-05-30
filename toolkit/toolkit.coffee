@@ -125,8 +125,7 @@
     obj2str: dumpFnDict.Object2str = (obj) ->
       resultStr = "{"
       for k, v of obj
-        if G.has obj, k
-          resultStr += "#{G.dump k}:#{G.dump v},"
+        resultStr += "#{G.dump k}:#{G.dump v}," if G.has obj, k
       resultStr.slice(0, -1) + "}"
 
     dump: (obj) ->
@@ -137,12 +136,8 @@
       obj
 
     param: (obj) ->
-      queryArray = []
-      tmpStr = ""
-      for attr, value of obj
-        tmpStr = encodeURIComponent(attr) + "=" + encodeURIComponent(G.dump value)
-        queryArray.push tmpStr
-      queryArray.join "&"
+      ("#{encodeURIComponent key}=#{encodeURIComponent G.dump value}" \
+        for key, value of obj).join "&"
   # ]]]
 
   # [[[ stylesheets
