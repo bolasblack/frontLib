@@ -141,6 +141,11 @@
     param: (obj) ->
       ("#{encodeURIComponent key}=#{encodeURIComponent G.dump value}" \
         for key, value of obj).join "&"
+
+    getParam: (url, key) ->
+      re = new RegExp "\\??" + key + "=([^&]*)", "g"
+      result = re.exec(url) or ""
+      decodeURIComponent result[1]
   # ]]]
 
   # [[[ stylesheets
