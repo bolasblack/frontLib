@@ -91,6 +91,15 @@
       tpl.replace /{{(.*?)}}/igm, ($, $1) ->
         if data[$1] then data[$1] else $
 
+    reEscape: (str) ->
+      str.replace(/\\/g, "\\\\")
+        .replace(/\//g, "\\/").replace(/\,/g, "\\,").replace(/\./g, "\\.")
+        .replace(/\^/g, "\\^").replace(/\$/g, "\\$").replace(/\|/g, "\\|")
+        .replace(/\?/g, "\\?").replace(/\+/g, "\\+").replace(/\*/g, "\\*")
+        .replace(/\[/g, "\\[").replace(/\]/g, "\\]")
+        .replace(/\{/g, "\\{").replace(/\}/g, "\\}")
+        .replace(/\(/g, "\\(").replace(/\)/g, "\\)")
+
     charUpperCase: (index, length=1) ->
       strList = @split ''
       for i in [0...length]
@@ -143,9 +152,13 @@
         for key, value of obj).join "&"
 
     getParam: (url, key) ->
+      key = G.reEscape key
       re = new RegExp "\\??" + key + "=([^&]*)", "g"
-      result = re.exec(url) or ""
-      decodeURIComponent result[1]
+      result = re.exec url
+      if result? and result.length > 1
+        decodeURIComponent result[1]
+      else
+        ""
   # ]]]
 
   # [[[ stylesheets
