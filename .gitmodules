@@ -28,6 +28,9 @@
 [submodule "sink-test"]
 	path = sink-test-UnitTest
 	url = https://github.com/ded/sink-test.git
-[submodule "qunit"]
-	path = qunit
-	url = https://github.com/jquery/qunit.git
+[submodule "jasmine"]
+	path = jasmine
+	url = https://github.com/pivotal/jasmine.git
+[submodule "jasmine-jstd-adapter"]
+	path = jasmine-jstd-adapter
+	url = https://github.com/ibolmo/jasmine-jstd-adapter.git
