@@ -15,6 +15,7 @@ window.G?.localStorage = ((window) ->
     getTime = (str) ->
       timeCount = getInt "#{str}".slice 0, -1
       timeUnit = str.substr -1
+      useSession = false
       switch timeUnit
         when "s" then timeCount * 1000
         when "m" then timeCount * 60 * 1000
@@ -24,17 +25,18 @@ window.G?.localStorage = ((window) ->
 
     outTime = getTime time
     cookieStr = "#{key}=#{escape value}"
-    [exp = new Date()][0].setTime exp.getTime() + outTime
+    currTime = (exp = new Date()).setTime exp.getTime() + outTime
     cookieStr += ";expires=#{exp.toGMTString()}" unless useSession
     cookieStr += ";path=/"
     document.cookie = cookieStr
 
   getCookie = (key) ->
     re = new RegExp("\\??" + key + "=([^;]*)", "g")
-    if [result = re.exec document.cookie][0]? then unescape(result[1]) else null
+    if (result = re.exec document.cookie)? then unescape(result[1]) else null
 
   delCookie = (key) ->
-    setCookie key, "", "-1d"
+    cookieValue = getCookie key
+    setCookie key, cookieValue, "-1d"
 
   getLocalStorage = (key) ->
     storage = if useSession then ss else ls
