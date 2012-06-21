@@ -90,6 +90,7 @@ window.G?.localStorage = ((window) ->
     this
 
   useCookie: (boolInput) ->
+    return useCookie unless boolInput?
     useCookie = boolInput
     this
 
