@@ -34,3 +34,6 @@
 [submodule "jasmine-jstd-adapter"]
 	path = jasmine-jstd-adapter
 	url = https://github.com/ibolmo/jasmine-jstd-adapter.git
+[submodule "toolkit"]
+	path = toolkit
+	url = https://github.com/bolasblack/toolkit.git
