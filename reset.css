@@ -23,7 +23,7 @@ th, td /* table elements 表格元素 */ {
 body,
 button, input, select, textarea /* for ie */ {
     font: 12px/1.5 "Helvetica Neue", Helvetica, \5FAE\8F6F\96C5\9ED1, tahoma, arial, \5b8b\4f53, Verdana, Geneva, sans-serif, "Myriad Pro";
-    -webkit-text-size-adjust: none; /* webkit 系的字体大小限制 */
+    -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;
 }
 h1, h2, h3, h4, h5, h6 { font-size: 100%; }
 address, cite, dfn, em, var { font-style: normal; } /* 将斜体扶正 */
