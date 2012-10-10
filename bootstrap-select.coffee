@@ -14,6 +14,22 @@ $.fn.bootSelect = (options) ->
       $btnGroup.find(".dropdown-toggle").html $li.find("a").text() + caret
       $select.val $li.data("option").val()
 
+    $select.on "change:dom", (event) ->
+      $btnGroup.find(".dropdown-menu").empty().append generateListItems $select.find "option"
+
+  generateListItems = ($items) ->
+    $items.map (index) ->
+      $item = $items.eq index
+      $li = $("<li>").append $("<a>", href: "javascript:;").text $item.text()
+      $li.data "option", $item
+      $item.data "li", $li
+      $li[0]
+
+  generateDropdownMenu = ($items) ->
+    $list = $ "<ul>", class: "dropdown-menu"
+    $listItems = generateListItems $items
+    $list.append $listItem for $listItem in $listItems
+
   @hide().each (index, elem) =>
     $this = @eq index
     $items = $this.find "option"
@@ -25,16 +41,8 @@ $.fn.bootSelect = (options) ->
     $toggler = $("<button>", {class: "btn dropdown-toggle", "data-toggle": "dropdown"})
       .html $this.find(":selected").text() + caret
 
-    $list = $ "<ul>", class: "dropdown-menu"
-    $listItems = $items.map (index) ->
-      $item = $items.eq index
-      $li = $("<li>").append $("<a>", href: "javascript:;").text $item.text()
-      $li.data "option", $item
-      $item.data "li", $li
-      $li
-
-    $list.append listItem for listItem in $listItems
-    $btnGroup.append($toggler).append $list
+    $dropdownMenu = generateDropdownMenu $items
+    $btnGroup.append($toggler).append $dropdownMenu
     $this.before $btnGroup
     $toggler.dropdown()
 
