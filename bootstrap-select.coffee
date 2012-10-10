@@ -13,9 +13,12 @@ $.fn.bootSelect = (options) ->
       $li = $ event.currentTarget
       $btnGroup.find(".dropdown-toggle").html $li.find("a").text() + caret
       $select.val $li.data("option").val()
+      $select.trigger "change"
 
     $select.on "change:dom", (event) ->
+      $selectedItem = $select.find "option:selected"
       $btnGroup.find(".dropdown-menu").empty().append generateListItems $select.find "option"
+      $btnGroup.find(".dropdown-toggle").html $selectedItem.text() + caret
 
   generateListItems = ($items) ->
     $items.map (index) ->
