@@ -60,7 +60,6 @@ class AutoCompleter
     event.trigger = triggerdChar
     event.inputed = @getInputed $textarea, triggerdPos
     event.offset = $mirror.find("#ac-flags").offset()
-    event.currentTarget = $textarea
     $textarea.trigger event
 
   checkTrigger: ($textarea) ->
