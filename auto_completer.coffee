@@ -7,7 +7,7 @@ lastIndexOf = Array::lastIndexOf or (searchvalue, start) ->
 
 class AutoCompleter
   cloneStyle: ["font-size", "font-family", "line-height", "letter-spacing", "word-wrap", "padding", "width", "border"]
-  hiddenChars: ["\n"]
+  hiddenChars: ["\n", " "]
   flags: ["@"]
   mirrorStyle:
     "position": "absolute"
@@ -35,15 +35,15 @@ class AutoCompleter
     lastTrigger = char: "", pos: -1
     lastHiddenChar = -1
     for flag in @flags
-      flagPos = lastIndexOf.call currentContent, flag, cursorPos
+      # cursorPos 表明的是 cursor 的位置，是 content.length + 1
+      flagPos = lastIndexOf.call currentContent, flag, cursorPos - 1
       continue if flagPos < lastTrigger.pos
       lastTrigger.pos = flagPos
       lastTrigger.char = flag
     for hiddenChar in @hiddenChars
-      hiddenCharPos = lastIndexOf.call currentContent, hiddenChar, cursorPos
+      hiddenCharPos = lastIndexOf.call currentContent, hiddenChar, cursorPos - 1
       lastHiddenChar = hiddenCharPos if hiddenCharPos > lastHiddenChar and cursorPos isnt hiddenCharPos
     lastTrigger = char: "", pos: -1 if lastHiddenChar > lastTrigger.pos
-    # lastIndexOf 的计数从 0 开始，selectionStart 从 1 开始
     char: lastTrigger.char, pos: lastTrigger.pos + 1
 
   getInputed: ($textarea, triggerdPos) ->
@@ -104,11 +104,9 @@ class AutoCompleter
       @adjustMirror $textarea
       @trigger $textarea, triggerdChar, triggerdPos
 
-    $textarea.on "blur.acdefined", (event) =>
-      @triggerHidden $textarea
-
   finishObserve: ($textarea) ->
     $textarea.off ".acdefined"
+    @triggerHidden $textarea
     @triggerd = false
 
   processOption: (options, argNames) ->
