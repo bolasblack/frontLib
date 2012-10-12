@@ -42,7 +42,7 @@ class AutoCompleter
     event = jQuery.Event "ac.trigger"
     event.trigger = triggerdChar
     event.inputed = @getInputed @$textarea, triggerdPos
-    event.offset = @$mirror.find("#ac-flags").offset()
+    event.offset = @$mirror.find(".ac-flags").offset()
     @$textarea.trigger event
 
   startObserve: ->
@@ -55,7 +55,7 @@ class AutoCompleter
         triggerdChar = lastTrigger.char
         triggerdPos = lastTrigger.pos
         @$mirror.html @$textarea.val().substring(0, triggerdPos - 1).replace /\n/g, "<br/>"
-        @$mirror.append $("<span>", id: "ac-flags").text triggerdChar
+        @$mirror.append $("<span>", class: "ac-flags").text triggerdChar
       else if not @triggerd
         @$mirror.html ""
         return
@@ -109,7 +109,6 @@ class AutoCompleter
     for styleName in @cloneStyle
       targetStyle[styleName] = @$textarea.css styleName
     $mirror.css(targetStyle).appendTo "body"
-    @$textarea.data "acMirror", $mirror
     $mirror
 
 AutoCompleter = $.extend AutoCompleter,
