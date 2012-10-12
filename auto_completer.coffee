@@ -41,8 +41,9 @@ class AutoCompleter
   trigger: (triggerdChar, triggerdPos) ->
     event = jQuery.Event "ac.trigger"
     event.trigger = triggerdChar
-    event.inputed = @getInputed @$textarea, triggerdPos
+    event.inputed = @getInputed triggerdPos
     event.offset = @$mirror.find(".ac-flags").offset()
+    event.triggerdPos = triggerdPos
     @$textarea.trigger event
 
   startObserve: ->
