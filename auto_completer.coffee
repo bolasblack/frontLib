@@ -139,14 +139,17 @@ AutoCompleter = $.extend AutoCompleter,
       startPos = textarea.selectionStart
       endPos = textarea.selectionEnd
       scrollTop = textarea.scrollTop
+      content = $textarea.val()
 
-      contentLength = $textarea.val().length
-      prefixContent = $textarea.val().substring(0, startPos)
-      postfixContent = $textarea.val().substring(endPos, contentLength)
+      contentLength = content.length
+      prefixContent = content.substring 0, startPos
+      postfixContent = content.substring endPos, contentLength
+      selectedContent = content.substring startPos, endPos
+      finalContent = prefixContent + value + selectedContent + postfixContent
 
-      $textarea.val(prefixContent + value + postfixContent).focus()
+      $textarea.val(finalContent).focus()
       textarea.selectionStart = startPos + value.length
-      textarea.selectionEnd = startPos + value.length
+      textarea.selectionEnd = endPos + value.length
       textarea.scrollTop = scrollTop
     else if document.selection
       $textarea.focus()
