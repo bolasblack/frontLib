@@ -17,15 +17,17 @@ class AutoCompleter
 
   triggerd: false
 
-  constructor: (textareaSelector, options) ->
-    if typeof textareaSelector is "string"
-      $textarea = $ textareaSelector
-    else if textareaSelector instanceof $
-      $textarea = textareaSelector
+  constructor: (selector, options) ->
+    if typeof selector is "string" or (selector?.nodeType? and selector.nodeType is 1)
+      $textarea = $ selector
+    else if selector instanceof $
+      $textarea = selector
     else
       $textarea = []
     unless $textarea.length
       return new Error "not support selector"
+    unless $textarea[0].tagName is "textarea".toUpperCase()
+      return new Error "not support element"
 
     @$textarea = $textarea
     @_processOption options, ["cloneStyle", "flags", "hiddenChars", "mirrorStyle"]
