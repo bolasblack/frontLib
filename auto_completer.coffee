@@ -18,10 +18,16 @@ class AutoCompleter
   triggerd: false
 
   constructor: (textareaSelector, options) ->
-    return unless textareaSelector
-    @$textarea = $ textareaSelector
-    return unless @$textarea.length
+    if typeof textareaSelector is "string"
+      $textarea = $ textareaSelector
+    else if textareaSelector instanceof $
+      $textarea = textareaSelector
+    else
+      $textarea = []
+    unless $textarea.length
+      return new Error "not support selector"
 
+    @$textarea = $textarea
     @_processOption options, ["cloneStyle", "flags", "hiddenChars", "mirrorStyle"]
     @$mirror = @_createMirror()
     @$textarea.data "AutoCompleter", this
