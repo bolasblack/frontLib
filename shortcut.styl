@@ -1,0 +1,50 @@
+.ir 
+  display: block
+  border: 0
+  text-indent: -999em
+  overflow: hidden
+  background-color: transparent
+  background-repeat: no-repeat
+  text-align: left
+  direction: ltr
+  *line-height: 0
+
+  br
+    display: none
+
+.hidden
+  display: none !important
+  visibility: hidden
+
+.visuallyhidden
+  position: absolute
+  overflow: hidden
+  padding: 0
+  margin: -1px
+  width: 1px
+  height: 1px
+  border: 0
+  clip: rect(0 0 0 0)
+
+  &.focusable:active,
+  &.focusable:focus
+    position: static
+    overflow: visible
+    margin: 0
+    width: auto
+    height: auto
+    clip: auto
+
+.invisible
+  visibility: hidden
+
+.clearfix
+  *zoom: 1
+
+  &:after
+    clear: both
+
+  &:before,
+  &:after
+    content: ""
+    display: table
