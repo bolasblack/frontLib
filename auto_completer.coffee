@@ -1,5 +1,7 @@
-$ = require 'jquery' if require?
-return unless $.fn or ($ = window.jQuery)
+if require? and not (@$?.fn? or ($ = @jQuery)?)
+  $ = require 'jquery'
+return unless $?.fn?
+
 lastIndexOf = Array::lastIndexOf or (searchvalue, start) ->
   for i in [@length...1] when (item = this[i]) is searchvalue
     return i
