@@ -1,4 +1,4 @@
-if require? and not (@$?.fn? or ($ = @jQuery)?)
+if (not ($ = @jQuery)?.fn?) and require?
   $ = require 'jquery'
 return unless $?.fn?
 
