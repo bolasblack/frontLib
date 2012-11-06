@@ -38,9 +38,11 @@ class AutoCompleter
     @startObserve()
 
   triggerHidden: ->
+    return if @disposed
     @$textarea.trigger "ac.hidden"
 
   trigger: (triggerdChar, triggerdPos) ->
+    return if @disposed
     event = jQuery.Event "ac.trigger"
     event.trigger = triggerdChar
     event.inputed = @getInputed triggerdPos
@@ -49,6 +51,7 @@ class AutoCompleter
     @$textarea.trigger event
 
   startObserve: ->
+    return if @disposed
     throw new Error("textarea hasn't init") unless @$mirror
     triggerdPos = -1
     triggerdChar = ""
@@ -68,13 +71,23 @@ class AutoCompleter
       @trigger triggerdChar, triggerdPos
 
   finishObserve: ->
+    return if @disposed
     @$textarea.off ".acdefined"
     @triggerHidden()
     @triggerd = false
 
+  disposed: false
   dispose: ->
-    @$textarea.data "AutoCompleter", null
+    return if @disposed
+
     @finishObserve()
+    @$textarea.data "AutoCompleter", null
+    @$mirror.remove()
+    for attr in ["$mirrorContainer", "$textarea", "$mirror"]
+      delete this[attr]
+
+    @disposed = true
+    Object.freeze? this
 
   getCursor: -> @constructor.getCursor @$textarea
   setCursor: (pos) -> @constructor.setCursor @$textarea, pos
