@@ -27,12 +27,12 @@ class AutoCompleter
     else
       $textarea = []
     unless $textarea.length
-      return new Error "not support selector"
+      throw new Error "not support selector"
     unless $textarea[0].tagName is "textarea".toUpperCase()
-      return new Error "not support element"
+      throw new Error "not support element"
 
     @$textarea = $textarea
-    @_processOption options, ["cloneStyle", "flags", "hiddenChars", "mirrorStyle"]
+    @_processOption options
     @$mirror = @_createMirror()
     @$textarea.data "AutoCompleter", this
     @startObserve()
@@ -49,7 +49,7 @@ class AutoCompleter
     @$textarea.trigger event
 
   startObserve: ->
-    return new Error("textarea hasn't init") unless @$mirror
+    throw new Error("textarea hasn't init") unless @$mirror
     triggerdPos = -1
     triggerdChar = ""
     @$textarea.on "keyup.acdefined click.acdefined", (event) =>
@@ -72,6 +72,10 @@ class AutoCompleter
     @triggerHidden()
     @triggerd = false
 
+  dispose: ->
+    @$textarea.data "AutoCompleter", null
+    @finishObserve()
+
   getCursor: -> @constructor.getCursor @$textarea
   setCursor: (pos) -> @constructor.setCursor @$textarea, pos
   insertCursor: (value) -> @constructor.insertCursor @$textarea, value
@@ -86,12 +90,18 @@ class AutoCompleter
       return false
     lastTrigger
 
-  _processOption: (options, argNames) ->
+  _processOption: (options) ->
     return unless options
-    for argName in argNames
+    selector = options.mirrorContainer
+    @$mirrorContainer = if selector instanceof $ then selector \
+      else if typeof selector is "string" then $ selector
+      else $ "body"
+
+    for argName in ["cloneStyle", "flags", "hiddenChars", "mirrorStyle"]
       this[argName] = options[argName] if options[argName]?
 
   _adjustMirror: ->
+    containerOffset = @$mirrorContainer.offset()
     offset = @$textarea.offset()
 
     originalHtml = @$mirror.html()
@@ -100,8 +110,8 @@ class AutoCompleter
     @$mirror.html originalHtml
 
     @$mirror.css
-      "top": offset.top + shim
-      "left": offset.left
+      "top": offset.top - containerOffset.top + shim
+      "left": offset.left - containerOffset.left
 
   _getTimestamp: -> (new Date).getTime()
 
@@ -111,7 +121,7 @@ class AutoCompleter
     targetStyle = $.extend {}, @mirrorStyle
     for styleName in @cloneStyle
       targetStyle[styleName] = @$textarea.css styleName
-    $mirror.css(targetStyle).appendTo "body"
+    $mirror.css(targetStyle).appendTo @$mirrorContainer
     $mirror
 
 AutoCompleter = $.extend AutoCompleter,
