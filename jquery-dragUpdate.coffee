@@ -1,65 +1,46 @@
-$dragArea = undefined
+return unless Modernizr.draganddrop
 
-# firefox 是 window.URL, chrome 是 window.webkitURL
-# http://blog.bingo929.com/renren-drag-drop-photo-filereader-formdata.html
-urlObject = if window.URL then window.URL else window.webkitURL
+do ($) ->
+  # firefox4+, chrome8+ 是 window.URL, chrome 另一种是 window.webkitURL
+  # https://developer.mozilla.org/en-US/docs/DOM/window.URL.createObjectURL
+  # http://blog.bingo929.com/renren-drag-drop-photo-filereader-formdata.html
+  urlObject = if window.URL then window.URL else window.webkitURL
 
-handleFileList = (config, fileList) ->
-  $imgArea = $ config.imgArea
-  return if fileList.length is 0
-  $imgList = $(createImg fileList).addClass "dragImg"
-  if config.mulitPic isnt true # 如果只允许存在一张图片
-    $existImg = $imgArea.find ".dragImg"
-    replaceImg $existImg, $imgList if $existImg.length > 0
-  else
-    $imgArea.append $imgList
+  handleFileList = (config, fileList) ->
+    return unless fileList.length
+    imageData = imagesObject if config.mulitPic then fileList else fileList[0]
+    return unless imageData.length
+    @trigger "dragupload.image", [imageData]
 
-createImg = (fileList) ->
-  imgList = []
-  img = undefined
-  $.map fileList, (imgFile, index) ->
-    return if !~imgFile.type.indexOf 'image'
-    imgUrl = urlObject.createObjectURL imgFile
-    imgTag = $('<img>', src: imgUrl, draggable: true)[0]
-    imgTag.file = imgFile
-    imgList.push imgTag
-  imgList
+  processFileList = (fileList, fn) ->
+    fileList = [fileList] unless Object::toString.call(fileList) is "[object FileList]"
+    for imageFile in fileList when !!~imageFile.type.indexOf 'image'
+      fn? imageFile
 
-revokeImg = ($imgElem) ->
-  $imgElem.each (index, imgElem) ->
-    urlObject.revokeObjectURL imgElem.file
-  $imgElem
+  imagesObject = (fileList) ->
+    processFileList fileList, (imageFile) ->
+      file: imageFile, url: urlObject.createObjectURL imageFile
 
-destroyImg = ($imgElem) ->
-  revokeImg($imgElem).detach()
+  imagesRevoke = (fileList) ->
+    processFileList fileList, (imageFile) ->
+      urlObject.revokeObjectURL imageFile
 
-replaceImg = ($oldImg, $newImg) ->
-  revokeImg($oldImg).replaceWith $newImg
+  dropHandler = (event) ->
+    event.preventDefault()
+    config = event.data
+    handleFileList.call $(event.currentTarget), config, event.dataTransfer.files
+    $(event.currentTarget).remove "drag-enter"
 
-dropHandler = (e) ->
-  e.preventDefault()
-  config = e.data
-  handleFileList config, e.dataTransfer.files
+  dragEnterHandler = (event) -> $(event.currentTarget).addClass "drag-enter"
+  dragLeaveHandler = (event) -> $(event.currentTarget).removeClass "drag-enter"
 
-dragEnterHandler = (e) ->
-  $dragArea.addClass "dragEnter"
+  dragUploadImage = (config) ->
+    config = $.extend config, mulitPic: false
+    $.event.props.push "dataTransfer"
 
-dragLeaveHandler = (e) ->
-  $dragArea.removeClass "dragLeave"
-
-bindInputEvent = (config) ->
-  $dragArea.on "change", config.inputElem, (e) ->
-    handleFileList config, this.files
-
-jQuery.fn.dragUpdateImage = (config) ->
-  jQuery.event.props.push "dataTransfer"
-
-  $dragArea = this
-    .on("dragover", (e) -> e.preventDefault())
+    @on("dragover", (event) -> event.preventDefault())
     .on("drop", config, dropHandler)
     .on("dragenter", dragEnterHandler)
     .on("dragleave", dragLeaveHandler)
-    .on "dblclick", "#{config.imgArea} .dragImg", (e) ->
-      destroyImg $ e.srcElement
 
-  bindInputEvent config if config.inputElem?
+  $.fn.dragUploadImage = $.extend dragUploadImage, {imagesObject, imagesRevoke, urlObject}
