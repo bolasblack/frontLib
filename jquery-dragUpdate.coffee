@@ -29,18 +29,26 @@ do ($) ->
     event.preventDefault()
     config = event.data
     handleFileList.call $(event.currentTarget), config, event.dataTransfer.files
-    $(event.currentTarget).remove "drag-enter"
+    dragLeaveHandler event
+    return
 
-  dragEnterHandler = (event) -> $(event.currentTarget).addClass "drag-enter"
-  dragLeaveHandler = (event) -> $(event.currentTarget).removeClass "drag-enter"
+  dragEnterHandler = (event) ->
+    $(event.currentTarget).addClass "drag-enter"
+    return
+
+  dragLeaveHandler = (event) ->
+    $(event.currentTarget).removeClass "drag-enter"
+    return
 
   dragUploadImage = (config) ->
     config = $.extend config, mulitPic: false
     $.event.props.push "dataTransfer"
 
-    @on("dragover", (event) -> event.preventDefault())
-    .on("drop", config, dropHandler)
+    @on("drop", config, dropHandler)
     .on("dragenter", dragEnterHandler)
     .on("dragleave", dragLeaveHandler)
+    .on "dragover", (event) ->
+      event.preventDefault()
+      return
 
   $.fn.dragUploadImage = $.extend dragUploadImage, {imagesObject, imagesRevoke, urlObject}
