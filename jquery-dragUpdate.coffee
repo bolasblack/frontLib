@@ -1,19 +1,26 @@
 do ($) ->
   return unless Modernizr.draganddrop
+  toString = Object::toString
 
   # firefox4+, chrome8+ 是 window.URL, chrome 另一种是 window.webkitURL
   # https://developer.mozilla.org/en-US/docs/DOM/window.URL.createObjectURL
   # http://blog.bingo929.com/renren-drag-drop-photo-filereader-formdata.html
   urlObject = if window.URL then window.URL else window.webkitURL
 
+  isFileList = (obj) ->
+    return false unless obj?
+    toString.call(obj) is "[object FileList]"
+
   handleFileList = (config, fileList) ->
     return unless fileList.length
     imageData = imagesObject if config.mulitPic then fileList else fileList[0]
     return unless imageData.length
-    @trigger "dragupload.image", [imageData]
+    event = $.Event "dragupload.image"
+    event.files = imageData
+    @trigger event
 
   processFileList = (fileList, fn) ->
-    fileList = [fileList] unless Object::toString.call(fileList) is "[object FileList]"
+    fileList = [fileList] unless isFileList fileList
     for imageFile in fileList when !!~imageFile.type.indexOf 'image'
       fn? imageFile
 
@@ -41,7 +48,7 @@ do ($) ->
     return
 
   dragUploadImage = (config) ->
-    config = $.extend config, mulitPic: false
+    config = $.extend {mulitPic: false}, config
     $.event.props.push "dataTransfer"
 
     @on("drop", config, dropHandler)
@@ -51,4 +58,5 @@ do ($) ->
       event.preventDefault()
       return
 
-  $.fn.dragUploadImage = $.extend dragUploadImage, {imagesObject, imagesRevoke, urlObject}
+  staticMethods = {imagesObject, imagesRevoke, urlObject}
+  $.fn.dragUploadImage = $.extend dragUploadImage, staticMethods
