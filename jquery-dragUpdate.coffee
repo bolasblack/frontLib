@@ -1,6 +1,6 @@
-return unless Modernizr.draganddrop
-
 do ($) ->
+  return unless Modernizr.draganddrop
+
   # firefox4+, chrome8+ 是 window.URL, chrome 另一种是 window.webkitURL
   # https://developer.mozilla.org/en-US/docs/DOM/window.URL.createObjectURL
   # http://blog.bingo929.com/renren-drag-drop-photo-filereader-formdata.html
