@@ -1,7 +1,14 @@
 do (_, Backbone) ->
   return unless Backbone?
 
-  one = (events, handler, context=this, whenFilter=->true) ->
+  one = (events, handler, context, whenFilter) ->
+    if _.isFunction(context)
+      whenFilter = context
+      context = this
+
+    context ?= this
+    whenFilter ?= -> true
+
     fn = =>
       return unless whenFilter.apply context, arguments
       @off events, fn, context
