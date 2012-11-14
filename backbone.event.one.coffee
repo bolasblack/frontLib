@@ -1,12 +1,13 @@
 do (_, Backbone) ->
   return unless Backbone?
 
-  one = (args..., handler) ->
+  one = (events, handler, context=this, whenFilter=->true) ->
     fn = =>
-      @off args..., fn
-      handler.apply this, arguments
+      return unless whenFilter.apply context, arguments
+      @off events, fn, context
+      handler.apply context, arguments
 
-    @on args..., fn
+    @on events, fn, context
 
   return if Backbone.Events.one?
   Backbone.Events.one = one
