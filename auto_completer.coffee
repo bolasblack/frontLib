@@ -8,7 +8,12 @@ lastIndexOf = Array::lastIndexOf or (searchvalue, start) ->
   -1
 
 class AutoCompleter
-  cloneStyle: ["font-size", "font-family", "line-height", "letter-spacing", "word-wrap", "padding", "width", "border"]
+  cloneStyle: [
+    "font-size", "font-family", "line-height"
+    "letter-spacing", "word-wrap", "padding"
+    "width", "border"
+  ]
+
   hiddenChars: ["\n", " "]
   flags: ["@"]
   mirrorStyle:
@@ -20,7 +25,7 @@ class AutoCompleter
   triggerd: false
 
   constructor: (selector, options) ->
-    if typeof selector is "string" or (selector?.nodeType? and selector.nodeType is 1)
+    if typeof selector is "string" or (selector? and selector.nodeType is 1)
       $textarea = $ selector
     else if selector instanceof $
       $textarea = selector
@@ -50,6 +55,10 @@ class AutoCompleter
     event.triggerdPos = triggerdPos
     @$textarea.trigger event
 
+  escapeContent: (content) ->
+    content = content.replace /\n/g, "<br/>"
+    content
+
   startObserve: ->
     return if @disposed
     throw new Error("textarea hasn't init") unless @$mirror
@@ -60,7 +69,7 @@ class AutoCompleter
         @triggerd = true
         triggerdChar = lastTrigger.char
         triggerdPos = lastTrigger.pos
-        @$mirror.html @$textarea.val().substring(0, triggerdPos - 1).replace /\n/g, "<br/>"
+        @$mirror.html @$textarea.val().substring 0, triggerdPos - 1
         @$mirror.append $("<span>", class: "ac-flags").text triggerdChar
       else if not @triggerd
         @$mirror.html ""
@@ -92,8 +101,9 @@ class AutoCompleter
   getCursor: -> @constructor.getCursor @$textarea
   setCursor: (pos) -> @constructor.setCursor @$textarea, pos
   insertCursor: (value) -> @constructor.insertCursor @$textarea, value
-  getLastTrigger: (cursorPos) -> @constructor.getLastTrigger @$textarea, cursorPos, @flags, @hiddenChars
   getInputed: (triggerdPos) -> @constructor.getInputed @$textarea, triggerdPos
+  getLastTrigger: (cursorPos) ->
+    @constructor.getLastTrigger @$textarea, cursorPos, @flags, @hiddenChars
 
   _checkTrigger: ->
     lastTrigger = @getLastTrigger()
@@ -139,8 +149,8 @@ class AutoCompleter
 
 AutoCompleter = $.extend AutoCompleter,
   isW3C: $("<textarea>")[0].selectionStart?
-  # w3c see also [http://www.w3.org/TR/2009/WD-html5-20090423/editing.html#selection]
-  # document.selection see also [http://qingfeng825.iteye.com/blog/259099]
+  # w3c http://www.w3.org/TR/2009/WD-html5-20090423/editing.html#selection
+  # document.selection http://qingfeng825.iteye.com/blog/259099
 
   # from http://js8.in/466.html
   getCursor: ($textarea) ->
@@ -209,7 +219,8 @@ AutoCompleter = $.extend AutoCompleter,
       lastTrigger.char = flag
     for hiddenChar in hiddenChars
       hiddenCharPos = lastIndexOf.call currentContent, hiddenChar, cursorPos - 1
-      lastHiddenChar = hiddenCharPos if hiddenCharPos > lastHiddenChar and cursorPos isnt hiddenCharPos
+      if hiddenCharPos > lastHiddenChar and cursorPos isnt hiddenCharPos
+        lastHiddenChar = hiddenCharPos
     lastTrigger = char: "", pos: -1 if lastHiddenChar > lastTrigger.pos
     char: lastTrigger.char, pos: lastTrigger.pos + 1
 
