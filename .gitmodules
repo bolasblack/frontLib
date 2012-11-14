@@ -1,39 +1,3 @@
-[submodule "bean"]
-	path = bean-event
-	url = https://github.com/fat/bean.git
-[submodule "domready"]
-	path = domready
-	url = https://github.com/ded/domready.git
-[submodule "qwery"]
-	path = qwery-selector
-	url = https://github.com/ded/qwery.git
-[submodule "bonzo"]
-	path = bonzo-dom
-	url = https://github.com/ded/bonzo.git
-[submodule "bowser"]
-	path = bowser
-	url = https://github.com/ded/bowser.git
-[submodule "reqwest"]
-	path = reqwest-ajax
-	url = https://github.com/ded/reqwest.git
-[submodule "morpheus-animation"]
-	path = morpheus-animation
-	url = https://github.com/ded/morpheus.git
-[submodule "valentine"]
-	path = valentine-functional
-	url = https://github.com/ded/valentine.git
-[submodule "Kizzy"]
-	path = Kizzy-localStorage
-	url = https://github.com/ded/Kizzy.git
 [submodule "sink-test"]
 	path = sink-test-UnitTest
 	url = https://github.com/ded/sink-test.git
-[submodule "jasmine"]
-	path = jasmine
-	url = https://github.com/pivotal/jasmine.git
-[submodule "jasmine-jstd-adapter"]
-	path = jasmine-jstd-adapter
-	url = https://github.com/ibolmo/jasmine-jstd-adapter.git
-[submodule "toolkit"]
-	path = toolkit
-	url = https://github.com/bolasblack/toolkit.git
