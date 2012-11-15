@@ -47,16 +47,26 @@ do ($) ->
     $(event.currentTarget).removeClass "drag-enter"
     return
 
-  dragUploadImage = (config) ->
+  dispose = ->
+    return unless @expando and @$el
+    @$el.off ".#{@expando}"
+    delete @$el
+    delete @expando
+
+  dragUploadImage = (config={}) ->
+    @dragUploadImage.dispose()
     config = $.extend {mulitPic: false}, config
     $.event.props.push "dataTransfer"
+    expando = "dragUpload#{$.now()}"
+    @dragUploadImage.expando = expando
+    @dragUploadImage.$el = this
 
-    @on("drop", config, dropHandler)
-    .on("dragenter", dragEnterHandler)
-    .on("dragleave", dragLeaveHandler)
-    .on "dragover", (event) ->
+    @on("drop.#{expando}", config, dropHandler)
+    .on("dragenter.#{expando}", dragEnterHandler)
+    .on("dragleave.#{expando}", dragLeaveHandler)
+    .on "dragover.#{expando}", (event) ->
       event.preventDefault()
       return
 
-  staticMethods = {imagesObject, imagesRevoke, urlObject}
+  staticMethods = {imagesObject, imagesRevoke, urlObject, dispose}
   $.fn.dragUploadImage = $.extend dragUploadImage, staticMethods
