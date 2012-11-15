@@ -14,6 +14,7 @@ class AutoCompleter
     "width", "border"
   ]
 
+  checkEvents: ["keyup", "click", "focus"]
   hiddenChars: ["\n", " "]
   flags: ["@"]
   mirrorStyle:
@@ -46,38 +47,33 @@ class AutoCompleter
     return if @disposed
     @$textarea.trigger "ac.hidden"
 
-  trigger: (triggerdChar, triggerdPos) ->
-    return if @disposed
-    event = jQuery.Event "ac.trigger"
-    event.trigger = triggerdChar
-    event.inputed = @getInputed triggerdPos
-    event.offset = @$mirror.find(".ac-flags").offset()
-    event.triggerdPos = triggerdPos
-    @$textarea.trigger event
-
   escapeContent: (content) ->
     content = content.replace /\n/g, "<br/>"
     content
 
-  startObserve: ->
-    return if @disposed
-    throw new Error("textarea hasn't init") unless @$mirror
+  checkTriggerShow: ->
     triggerdPos = -1
     triggerdChar = ""
-    @$textarea.on "keyup.acdefined click.acdefined", (event) =>
-      if (lastTrigger = @_checkTrigger())
-        @triggerd = true
-        triggerdChar = lastTrigger.char
-        triggerdPos = lastTrigger.pos
-        @$mirror.html @$textarea.val().substring 0, triggerdPos - 1
-        @$mirror.append $("<span>", class: "ac-flags").text triggerdChar
-      else if not @triggerd
-        @$mirror.html ""
-        return
+    if (lastTrigger = @_checkTrigger())
+      @triggerd = true
+      triggerdChar = lastTrigger.char
+      triggerdPos = lastTrigger.pos
+      @$mirror.html @$textarea.val().substring 0, triggerdPos - 1
+      @$mirror.append $("<span>", class: "ac-flags").text triggerdChar
+    else unless @triggerd
+      @$mirror.html ""
 
-      return unless @triggerd
-      @_adjustMirror()
-      @trigger triggerdChar, triggerdPos
+    return unless @triggerd
+    @_adjustMirror()
+    @_trigger triggerdChar, triggerdPos
+
+  startObserve: ->
+    return if @disposed
+    throw new Error("textarea hasn't initialize") unless @$mirror
+    events = _(@checkEvents).map (event) ->
+      event + ".acdefined"
+    .join " "
+    @$textarea.on events, $.proxy @checkTriggerShow, this
 
   finishObserve: ->
     return if @disposed
@@ -105,6 +101,15 @@ class AutoCompleter
   getLastTrigger: (cursorPos) ->
     @constructor.getLastTrigger @$textarea, cursorPos, @flags, @hiddenChars
 
+  _trigger: (triggerdChar, triggerdPos) ->
+    return if @disposed
+    event = jQuery.Event "ac.trigger"
+    event.trigger = triggerdChar
+    event.inputed = @getInputed triggerdPos
+    event.offset = @$mirror.find(".ac-flags").offset()
+    event.triggerdPos = triggerdPos
+    @$textarea.trigger event
+
   _checkTrigger: ->
     lastTrigger = @getLastTrigger()
     unless lastTrigger.pos
@@ -118,9 +123,13 @@ class AutoCompleter
     selector = options.mirrorContainer
     @$mirrorContainer = if selector instanceof $ then selector \
       else if typeof selector is "string" then $ selector
-      else $ "body"
+      else @$textarea.parent()
 
-    for argName in ["cloneStyle", "flags", "hiddenChars", "mirrorStyle"]
+    optionsName = [
+      "cloneStyle", "flags", "hiddenChars"
+      "mirrorStyle", "checkEvents"
+    ]
+    for argName in optionsName
       this[argName] = options[argName] if options[argName]?
 
   _adjustMirror: ->
@@ -136,24 +145,22 @@ class AutoCompleter
       "top": offset.top - containerOffset.top + shim
       "left": offset.left - containerOffset.left
 
-  _getTimestamp: -> (new Date).getTime()
-
   _createMirror: ->
-    mirrorID = @_getTimestamp()
+    mirrorID = $.now()
     $mirror = $ "<div>", class: "ac-mirrors ac-mirror#{mirrorID}"
     targetStyle = $.extend {}, @mirrorStyle
     for styleName in @cloneStyle
       targetStyle[styleName] = @$textarea.css styleName
+    @$mirrorContainer.css "position", "relative"
     $mirror.css(targetStyle).appendTo @$mirrorContainer
     $mirror
 
-AutoCompleter = $.extend AutoCompleter,
-  isW3C: $("<textarea>")[0].selectionStart?
+  @isW3C = $("<textarea>")[0].selectionStart?
   # w3c http://www.w3.org/TR/2009/WD-html5-20090423/editing.html#selection
   # document.selection http://qingfeng825.iteye.com/blog/259099
 
   # from http://js8.in/466.html
-  getCursor: ($textarea) ->
+  @getCursor = ($textarea) ->
     caretPos = 0
     if @isW3C
       caretPos = $textarea[0].selectionStart
@@ -164,7 +171,7 @@ AutoCompleter = $.extend AutoCompleter,
       caretPos = range.text.length
     caretPos
 
-  setCursor: ($textarea, pos) ->
+  @setCursor = ($textarea, pos) ->
     if @isW3C
       $textarea.focus()
       $textarea[0].setSelectionRange pos, pos
@@ -176,7 +183,7 @@ AutoCompleter = $.extend AutoCompleter,
       range.select()
 
   # from http://js8.in/538.html
-  insertCursor: ($textarea, value) ->
+  @insertCursor = ($textarea, value) ->
     textarea = $textarea[0]
     if @isW3C
       startPos = textarea.selectionStart
@@ -203,10 +210,10 @@ AutoCompleter = $.extend AutoCompleter,
       textarea.value += value
       $textarea.focus()
 
-  getLastTrigger: ($textarea, cursorPos, flags, hiddenChars) ->
+  @getLastTrigger = ($textarea, cursorPos, flags, hiddenChars) ->
     cursorPos or= @getCursor $textarea
-    flags or= @prototype.flags
-    hiddenChars or= @prototype.hiddenChars
+    flags or= this::flags
+    hiddenChars or= this::hiddenChars
 
     currentContent = $textarea.val()
     lastTrigger = char: "", pos: -1
@@ -224,7 +231,7 @@ AutoCompleter = $.extend AutoCompleter,
     lastTrigger = char: "", pos: -1 if lastHiddenChar > lastTrigger.pos
     char: lastTrigger.char, pos: lastTrigger.pos + 1
 
-  getInputed: ($textarea, triggerdPos) ->
+  @getInputed = ($textarea, triggerdPos) ->
     currentContent = $textarea.val()
     triggerdPos or= @getCursor $textarea
     currentContent.substring triggerdPos, currentContent.length
