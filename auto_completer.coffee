@@ -10,8 +10,12 @@ lastIndexOf = Array::lastIndexOf or (searchvalue, start) ->
 class AutoCompleter
   cloneStyle: [
     "font-size", "font-family", "line-height"
-    "letter-spacing", "word-wrap", "padding"
-    "width", "border"
+    "letter-spacing", "word-wrap", "width"
+    # firefox cann't get $el.css("padding")
+    "padding-left", "padding-right", "padding-top", "padding-bottom"
+    # firefox cann't get $el.css("border-width")
+    "border-left-width", "border-right-width"
+    "border-top-width", "border-bottom-width"
   ]
 
   checkEvents: ["keyup", "click", "focus"]
@@ -241,4 +245,3 @@ if module?.exports?
   module.exports = AutoCompleter
 else
   @AutoCompleter = AutoCompleter
-
