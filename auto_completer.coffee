@@ -9,7 +9,7 @@ lastIndexOf = Array::lastIndexOf or (searchvalue, start) ->
 
 class AutoCompleter
   cloneStyle: [
-    "font-size", "font-family", "line-height"
+    "font-size", "font-family", "line-height", "text-align"
     "letter-spacing", "word-wrap", "width"
     # firefox cann't get $el.css("padding")
     "padding-left", "padding-right", "padding-top", "padding-bottom"
