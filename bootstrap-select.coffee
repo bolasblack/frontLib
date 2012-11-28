@@ -64,12 +64,17 @@ $.fn.bootSelect = (options) ->
       $items = $this.find "option"
       selectName = randomName "select"
 
-      $btnGroup = $ "<div>", class: "btn-group", "data-select": selectName
-      $btnGroup.data "select", $this
+      $btnGroup = $ "<div>",
+        class: "btn-group #{$this.data "bs-class"}"
+        "data-select": selectName
+      .data "select", $this
+
       $this.attr("data-select", selectName).data "btnGroup", $btnGroup
 
-      $toggler = $("<button>", {class: "btn dropdown-toggle", "data-toggle": "dropdown"})
-        .html $this.find(":selected").text() + caret
+      $toggler = $ "<button>",
+        class: "btn dropdown-toggle"
+        "data-toggle": "dropdown"
+      .html $this.find(":selected").text() + caret
 
       $dropdownMenu = generateDropdownMenu $items
       $btnGroup.append($toggler).append $dropdownMenu
