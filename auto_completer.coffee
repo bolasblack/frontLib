@@ -62,8 +62,11 @@ class AutoCompleter
       @triggerd = true
       triggerdChar = lastTrigger.char
       triggerdPos = lastTrigger.pos
-      @$mirror.html @$textarea.val().substring 0, triggerdPos - 1
-      @$mirror.append $("<span>", class: "ac-flags").text triggerdChar
+      @$mirror.html(@$textarea.val()
+        .substring(0, triggerdPos - 1)
+        .replace(/\r\n/g, "<br>")
+        .replace /\n/g, "<br>"
+      ).append $("<span>", class: "ac-flags").text triggerdChar
     else unless @triggerd
       @$mirror.html ""
 
