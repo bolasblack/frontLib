@@ -7,10 +7,24 @@ lastIndexOf = Array::lastIndexOf or (searchvalue, start) ->
     return i
   -1
 
+getInt = (str) ->
+  parseInt str, 10
+
+###
+ * selector {String|Element|jQuery instance} textarea, 可以是选择器，jquery对象，DOM对象
+ * options {Hash}
+    debugMode:       {Boolean} 是否启动 debug 模式，会显示 mirror 元素, 默认为 false
+    mirrorContainer: {String|jQuery instance} mirror 的容器，默认为 textarea 的父元素
+    cloneStyle:      {Array} 要从 textarea 克隆的样式，默认见 AutoCompleter::cloneStyle
+    flags:           {Array} 会触发 ac.trigger 的符号，默认见 AutoCompleter::flags
+    hiddenChars:     {Array} 会触发 ac.hidden 的符号，默认见 AutoCompleter::hiddenChars
+    checkEvents":    {Array} 会触发检查行为的事件，默认见 AutoCompleter::checkEvents
+    mirrorStyle:     {Hash} mirror 的额外样式，默认见 AutoCompleter::mirrorStyle
+###
 class AutoCompleter
   cloneStyle: [
     "font-size", "font-family", "line-height", "text-align"
-    "letter-spacing", "word-wrap", "width"
+    "letter-spacing", "word-wrap", "width", "box-sizing"
     # firefox cann't get $el.css("padding")
     "padding-left", "padding-right", "padding-top", "padding-bottom"
     # firefox cann't get $el.css("border-width")
@@ -18,7 +32,7 @@ class AutoCompleter
     "border-top-width", "border-bottom-width"
   ]
 
-  checkEvents: ["keyup", "click", "focus"]
+  checkEvents: ["keydown", "keyup", "click", "focus"]
   hiddenChars: ["\n", " "]
   flags: ["@"]
   mirrorStyle:
@@ -28,6 +42,7 @@ class AutoCompleter
     "background-color": "#aaa"
 
   triggerd: false
+  _lastHeight: null
 
   constructor: (selector, options) ->
     if typeof selector is "string" or (selector? and selector.nodeType is 1)
@@ -43,7 +58,6 @@ class AutoCompleter
 
     @$textarea = $textarea
     @_processOption options
-    @$mirror = @_createMirror()
     @$textarea.data "AutoCompleter", this
     @startObserve()
 
@@ -52,35 +66,51 @@ class AutoCompleter
     @$textarea.trigger "ac.hidden"
 
   escapeContent: (content) ->
-    content = content.replace /\n/g, "<br/>"
     content
+      .replace(/\r\n/g, "<br>")
+      .replace /\n/g, "<br/>"
 
-  checkTriggerShow: ->
+  checkTriggerShow: =>
+    @$mirror = @_createMirror()
     triggerdPos = -1
     triggerdChar = ""
     if (lastTrigger = @_checkTrigger())
       @triggerd = true
       triggerdChar = lastTrigger.char
       triggerdPos = lastTrigger.pos
-      @$mirror.html(@$textarea.val()
-        .substring(0, triggerdPos - 1)
-        .replace(/\r\n/g, "<br>")
-        .replace /\n/g, "<br>"
-      ).append $("<span>", class: "ac-flags").text triggerdChar
-    else unless @triggerd
-      @$mirror.html ""
+      triggerHtml = $("<span>", class: "ac-flags").text triggerdChar
+      otherHtml = @escapeContent @$textarea.val().substring 0, triggerdPos - 1
+      @$mirror.html(otherHtml).append triggerHtml
+    #else unless @triggerd
+      #@$mirror.html ""
 
     return unless @triggerd
     @_adjustMirror()
     @_trigger triggerdChar, triggerdPos
 
+  computeContentHeight: (event) ->
+    @$mirror = @_createMirror()
+    # enter key
+    extra = if event.keyCode is 13 then "<br>" else ""
+    # delete key
+    content = @$textarea.val()
+    content = if event.keyCode is 8 then content.slice(0, -1) else content
+    @$mirror.html @escapeContent content + extra + "1"
+    paddingTop = getInt @$mirror.css "padding-top"
+    paddingBottom = getInt @$mirror.css "padding-bottom"
+    height = paddingTop + paddingBottom + @$mirror.height()
+    if @_lastHeight isnt height
+      event = $.Event "ac.resize"
+      event.height = height
+      @$textarea.trigger event
+    @_lastHeight = height
+
   startObserve: ->
     return if @disposed
-    throw new Error("textarea hasn't initialize") unless @$mirror
-    events = _(@checkEvents).map (event) ->
-      event + ".acdefined"
-    .join " "
-    @$textarea.on events, $.proxy @checkTriggerShow, this
+    events = _(@checkEvents).map((event) -> "#{event}.acdefined").join " "
+    @$textarea
+      .on(events, $.proxy @checkTriggerShow, this)
+      .on "keydown.acdefined", $.proxy @computeContentHeight, this
 
   finishObserve: ->
     return if @disposed
@@ -138,6 +168,7 @@ class AutoCompleter
     ]
     for argName in optionsName
       this[argName] = options[argName] if options[argName]?
+    @options = options
 
   _adjustMirror: ->
     containerOffset = @$mirrorContainer.offset()
@@ -153,6 +184,7 @@ class AutoCompleter
       "left": offset.left - containerOffset.left
 
   _createMirror: ->
+    @$mirror.remove() if @$mirror?
     mirrorID = $.now()
     $mirror = $ "<div>", class: "ac-mirrors ac-mirror#{mirrorID}"
     targetStyle = $.extend {}, @mirrorStyle
@@ -160,6 +192,8 @@ class AutoCompleter
       targetStyle[styleName] = @$textarea.css styleName
     @$mirrorContainer.css "position", "relative"
     $mirror.css(targetStyle).appendTo @$mirrorContainer
+    if @options.debugMode
+      $mirror.css "visibility": "visible", "z-index": "1"
     $mirror
 
   @isW3C = $("<textarea>")[0].selectionStart?
