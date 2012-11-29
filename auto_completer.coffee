@@ -7,8 +7,7 @@ lastIndexOf = Array::lastIndexOf or (searchvalue, start) ->
     return i
   -1
 
-getInt = (str) ->
-  parseInt str, 10
+getInt = (str) -> parseInt str, 10
 
 ###
  * selector {String|Element|jQuery instance} textarea, 可以是选择器，jquery对象，DOM对象
@@ -88,14 +87,10 @@ class AutoCompleter
     @_adjustMirror()
     @_trigger triggerdChar, triggerdPos
 
-  computeContentHeight: (event) ->
+  computeContentHeight: (event={}) ->
     @$mirror = @_createMirror()
-    # enter key
-    extra = if event.keyCode is 13 then "<br>" else ""
-    # delete key
-    content = @$textarea.val()
-    content = if event.keyCode is 8 then content.slice(0, -1) else content
-    @$mirror.html @escapeContent content + extra + "1"
+    content = @_forecastContent @$textarea.val(), event
+    @$mirror.html @escapeContent content
     paddingTop = getInt @$mirror.css "padding-top"
     paddingBottom = getInt @$mirror.css "padding-bottom"
     height = paddingTop + paddingBottom + @$mirror.height()
@@ -133,10 +128,24 @@ class AutoCompleter
 
   getCursor: -> @constructor.getCursor @$textarea
   setCursor: (pos) -> @constructor.setCursor @$textarea, pos
+  getSelected: -> @constructor.getSelected @$textarea
   insertCursor: (value) -> @constructor.insertCursor @$textarea, value
   getInputed: (triggerdPos) -> @constructor.getInputed @$textarea, triggerdPos
   getLastTrigger: (cursorPos) ->
     @constructor.getLastTrigger @$textarea, cursorPos, @flags, @hiddenChars
+
+  _forecastContent: (content, event) ->
+    # enter key
+    if event.keyCode is 13
+      content += "\n"
+    # delete key
+    if event.keyCode is 8
+      selected = @getSelected()
+      return content.replace selected, "" if selected.length
+      cursorPos = @getCursor()
+      pre = content.substring 0, cursorPos - 1
+      content = pre + content.substring cursorPos, content.length
+    content + "1"
 
   _trigger: (triggerdChar, triggerdPos) ->
     return if @disposed
@@ -250,6 +259,18 @@ class AutoCompleter
     else
       textarea.value += value
       $textarea.focus()
+
+  @getSelected = ($textarea) ->
+    textarea = $textarea[0]
+    if @isW3C
+      startPos = textarea.selectionStart
+      endPos = textarea.selectionEnd
+      selectedContent = $textarea.val().substring startPos, endPos
+    else
+      $textarea.focus()
+      range = document.selection.createRange()
+      selectedContent = range.text
+    selectedContent
 
   @getLastTrigger = ($textarea, cursorPos, flags, hiddenChars) ->
     cursorPos or= @getCursor $textarea
