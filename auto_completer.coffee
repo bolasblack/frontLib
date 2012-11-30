@@ -119,7 +119,7 @@ class AutoCompleter
 
     @finishObserve()
     @$textarea.data "AutoCompleter", null
-    @$mirror.remove()
+    @$mirror?.remove()
     for attr in ["$mirrorContainer", "$textarea", "$mirror"]
       delete this[attr]
 
