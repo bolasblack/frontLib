@@ -69,7 +69,7 @@ class AutoCompleter
       .replace(/\r\n/g, "<br>")
       .replace /\n/g, "<br/>"
 
-  checkTriggerShow: =>
+  checkTriggerShow: (event) =>
     @$mirror = @_createMirror()
     triggerdPos = -1
     triggerdChar = ""
@@ -105,7 +105,7 @@ class AutoCompleter
     events = _(@checkEvents).map((event) -> "#{event}.acdefined").join " "
     @$textarea
       .on(events, $.proxy @checkTriggerShow, this)
-      .on "keydown.acdefined", $.proxy @computeContentHeight, this
+      .on "keyup.acdefined keydown.acdefined", $.proxy @computeContentHeight, this
 
   finishObserve: ->
     return if @disposed
@@ -135,16 +135,9 @@ class AutoCompleter
     @constructor.getLastTrigger @$textarea, cursorPos, @flags, @hiddenChars
 
   _forecastContent: (content, event) ->
-    # enter key
-    if event.keyCode is 13
+    # enter key, too late if work in keyup
+    if event.type is "keydown" and event.keyCode is 13
       content += "\n"
-    # delete key
-    if event.keyCode is 8
-      selected = @getSelected()
-      return content.replace selected, "" if selected.length
-      cursorPos = @getCursor()
-      pre = content.substring 0, cursorPos - 1
-      content = pre + content.substring cursorPos, content.length
     content + "1"
 
   _trigger: (triggerdChar, triggerdPos) ->
