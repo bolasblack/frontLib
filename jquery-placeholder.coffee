@@ -20,13 +20,12 @@ $.fn.placeholder = (options) ->
       return
 
     $p = $("<p>", class: "placeholder-container").css
-      "position": "relative", "padding": 0, "margin": 0
+      "position": "relative", "padding": 0, "margin": 0, "overflow": "hidden"
       "display": $elem.css("display"), "float": $elem.css("float")
 
-    $label = $ "<label>",
-      for: $elem.attr("id") or ""
-      class: "placeholder"
+    $label = $ "<label>", for: $elem.attr("id") or "", class: "placeholder"
 
+    debugger
     $label.text($elem.attr "placeholder").css
       position: "absolute"
       top: $elem.css("padding-top")
