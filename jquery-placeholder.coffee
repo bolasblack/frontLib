@@ -15,29 +15,32 @@ $.fn.placeholder = (options) ->
       clearInterval timer
       $elem.removeData "placeholder_timer"
 
-    if options? and not options
+    dispose = ->
       removeData()
-
-      $container = $elem
+      $elem
         .off(".placeholder")
-        .parents ".placeholder-container"
+        .parents(".placeholder-container")
+        .find(".placeholder-label")
+        .off(".placeholder")
+        .remove()
 
-      $container
-        .find(".placeholder")
-        .off ".placeholder"
+      $elem.unwrap ".placeholder-container"
 
-      return
+    return dispose() if options? and not options
 
     $p = $("<p>", class: "placeholder-container").css
       "position": "relative", "padding": 0, "margin": 0, "overflow": "hidden"
       "display": $elem.css("display"), "float": $elem.css("float")
 
-    $label = $ "<label>", for: $elem.attr("id") or "", class: "placeholder"
+    $label = $ "<label>",
+      for: $elem.attr("id") or ""
+      class: "placeholder-label"
 
     $label.text($elem.attr "placeholder").css
       position: "absolute"
       top: $elem.css("padding-top")
       left: $elem.css("padding-left")
+      cursor: "text"
       color: $elem.css("color")
       "font-size": $elem.css("font-size")
 
@@ -54,4 +57,4 @@ $.fn.placeholder = (options) ->
     $elem.wrap($p).before($label).on events, (event) ->
       $label[`$elem.val()? "hide": "show"`]()
 
-    $label.on "mousedown.placeholder", (event) -> $elem.focus()
+    $label.on "click.placeholder mousedown.placeholder", (event) -> $elem.focus()
