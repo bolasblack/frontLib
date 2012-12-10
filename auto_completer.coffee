@@ -66,8 +66,14 @@ class AutoCompleter
 
   escapeContent: (content) ->
     content
-      .replace(/\r\n/g, "<br>")
-      .replace /\n/g, "<br/>"
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&gt;")
+      .replace(/>/g, "&lt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#x27;")
+      .replace(/\//g, "&#x2F;")
+      .replace(/\r\n|\r|\n/g, "<br>")
+      .replace /\ /g, "&nbsp;"
 
   checkTriggerShow: (event) =>
     @$mirror = @_createMirror()
