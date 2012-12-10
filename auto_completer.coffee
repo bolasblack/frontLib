@@ -276,10 +276,12 @@ class AutoCompleter
       startPos = textarea.selectionStart
       endPos = textarea.selectionEnd
       selectedContent = $textarea.val().substring startPos, endPos
-    else
+    else if document.selection
       $textarea.focus()
       range = document.selection.createRange()
       selectedContent = range.text
+    else
+      selectedContent = $textarea.val()
     selectedContent
 
   @getLastTrigger = (content, cursorPos, flags, hiddenChars) ->
