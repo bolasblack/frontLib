@@ -108,10 +108,11 @@ class AutoCompleter
 
   startObserve: ->
     return if @disposed
-    events = _(@checkEvents).map((event) -> "#{event}.acdefined").join " "
+    checkAtEvents = @_wrapEvents @checkEvents
+    completeHeightEvents = @_wrapEvents ["keyup", "keydown"]
     @$textarea
-      .on(events, $.proxy @checkTriggerShow, this)
-      .on "keyup.acdefined keydown.acdefined", $.proxy @computeContentHeight, this
+      .on(checkAtevents, $.proxy @checkTriggerShow, this)
+      .on completeHeightEvents, $.proxy @computeContentHeight, this
 
   finishObserve: ->
     return if @disposed
@@ -139,6 +140,11 @@ class AutoCompleter
   getInputed: (triggerdPos) -> @constructor.getInputed @$textarea, triggerdPos
   getLastTrigger: (cursorPos) ->
     @constructor.getLastTrigger @$textarea, cursorPos, @flags, @hiddenChars
+
+  _wrapEvents: (events) ->
+    wrapEvent = (event) -> "#{event}.acdefined"
+    events = [events] unless _(events).isArray()
+    _(events).map(wrapEvent).join " "
 
   _forecastContent: (content, event) ->
     # enter key, too late if work in keyup
