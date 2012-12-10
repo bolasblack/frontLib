@@ -32,7 +32,7 @@ class AutoCompleter
   ]
 
   checkEvents: ["keydown", "keyup", "click", "focus"]
-  hiddenChars: ["\n", " "]
+  hiddenChars: ["\r\n", "\r", "\n", " "]
   flags: ["@"]
   mirrorStyle:
     "position": "absolute"
@@ -64,7 +64,7 @@ class AutoCompleter
     return if @disposed
     @$textarea.trigger "ac.hidden"
 
-  escapeContent: (content) ->
+  escape: (content) ->
     content
       .replace(/&/g, "&amp;")
       .replace(/</g, "&gt;")
@@ -84,10 +84,9 @@ class AutoCompleter
       triggerdChar = lastTrigger.char
       triggerdPos = lastTrigger.pos
       triggerHtml = $("<span>", class: "ac-flags").text triggerdChar
-      otherHtml = @escapeContent @$textarea.val().substring 0, triggerdPos - 1
+      otherHtml = @escape @$textarea.val().substring 0, triggerdPos - 1
       @$mirror.html(otherHtml).append triggerHtml
-    #else unless @triggerd
-      #@$mirror.html ""
+      console.log "last trigger: ", lastTrigger if @options.debugMode
 
     return unless @triggerd
     @_adjustMirror()
@@ -96,7 +95,7 @@ class AutoCompleter
   computeContentHeight: (event={}) ->
     @$mirror = @_createMirror()
     content = @_forecastContent @$textarea.val(), event
-    @$mirror.html @escapeContent content
+    @$mirror.html @escape content
     paddingTop = getInt @$mirror.css "padding-top"
     paddingBottom = getInt @$mirror.css "padding-bottom"
     height = paddingTop + paddingBottom + @$mirror.height()
@@ -109,10 +108,14 @@ class AutoCompleter
   startObserve: ->
     return if @disposed
     checkAtEvents = @_wrapEvents @checkEvents
-    completeHeightEvents = @_wrapEvents ["keyup", "keydown"]
+    completeHeightEvents = @_wrapEvents ["keydown", "keyup"]
     @$textarea
-      .on(checkAtevents, $.proxy @checkTriggerShow, this)
+      .on(checkAtEvents, $.proxy @checkTriggerShow, this)
       .on completeHeightEvents, $.proxy @computeContentHeight, this
+
+    if @options.debugMode
+      console.log "check events: ", checkAtEvents
+      console.log "complete events: ", completeHeightEvents
 
   finishObserve: ->
     return if @disposed
@@ -139,7 +142,9 @@ class AutoCompleter
   insertCursor: (value) -> @constructor.insertCursor @$textarea, value
   getInputed: (triggerdPos) -> @constructor.getInputed @$textarea, triggerdPos
   getLastTrigger: (cursorPos) ->
-    @constructor.getLastTrigger @$textarea, cursorPos, @flags, @hiddenChars
+    content = @$textarea.val()
+    cursorPos = @getCursor()
+    @constructor.getLastTrigger content, cursorPos, @flags, @hiddenChars
 
   _wrapEvents: (events) ->
     wrapEvent = (event) -> "#{event}.acdefined"
@@ -162,7 +167,7 @@ class AutoCompleter
     @$textarea.trigger event
 
   _checkTrigger: ->
-    lastTrigger = @getLastTrigger()
+    lastTrigger = @getLastTrigger @getCursor()
     unless lastTrigger.pos
       @triggerHidden()
       @triggerd = false
@@ -277,31 +282,25 @@ class AutoCompleter
       selectedContent = range.text
     selectedContent
 
-  @getLastTrigger = ($textarea, cursorPos, flags, hiddenChars) ->
-    cursorPos or= @getCursor $textarea
-    flags or= this::flags
-    hiddenChars or= this::hiddenChars
-
-    currentContent = $textarea.val()
+  @getLastTrigger = (content, cursorPos, flags, hiddenChars) ->
     lastTrigger = char: "", pos: -1
     lastHiddenChar = -1
     for flag in flags
       # cursorPos 表明的是 cursor 的位置，是 content.length + 1
-      flagPos = lastIndexOf.call currentContent, flag, cursorPos - 1
+      flagPos = lastIndexOf.call content, flag, cursorPos - 1
       continue if flagPos < lastTrigger.pos
       lastTrigger.pos = flagPos
       lastTrigger.char = flag
     for hiddenChar in hiddenChars
-      hiddenCharPos = lastIndexOf.call currentContent, hiddenChar, cursorPos - 1
+      hiddenCharPos = lastIndexOf.call content, hiddenChar, cursorPos - 1
       if hiddenCharPos > lastHiddenChar and cursorPos isnt hiddenCharPos
         lastHiddenChar = hiddenCharPos
     lastTrigger = char: "", pos: -1 if lastHiddenChar > lastTrigger.pos
     char: lastTrigger.char, pos: lastTrigger.pos + 1
 
   @getInputed = ($textarea, triggerdPos) ->
-    currentContent = $textarea.val()
-    triggerdPos or= @getCursor $textarea
-    currentContent.substring triggerdPos, currentContent.length
+    cursorPos = @getCursor $textarea
+    $textarea.val().substring triggerdPos, cursorPos
 
 
 if module?.exports?
