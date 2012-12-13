@@ -136,11 +136,11 @@ class AutoCompleter
     @disposed = true
     Object.freeze? this
 
-  getCursor: -> @constructor.getCursor @$textarea
-  setCursor: (pos) -> @constructor.setCursor @$textarea, pos
-  getSelected: -> @constructor.getSelected @$textarea
-  insertCursor: (value) -> @constructor.insertCursor @$textarea, value
-  getInputed: (triggerdPos) -> @constructor.getInputed @$textarea, triggerdPos
+  getCursor: -> @constructor.getCursor @$textarea[0]
+  setCursor: (pos) -> @constructor.setCursor @$textarea[0], pos
+  getSelected: -> @constructor.getSelected @$textarea[0]
+  insertCursor: (value) -> @constructor.insertCursor @$textarea[0], value
+  getInputed: (triggerdPos) -> @constructor.getInputed @$textarea[0], triggerdPos
   getLastTrigger: (cursorPos) ->
     content = @$textarea.val()
     cursorPos = @getCursor()
@@ -220,36 +220,35 @@ class AutoCompleter
   # document.selection http://qingfeng825.iteye.com/blog/259099
 
   # from http://js8.in/466.html
-  @getCursor = ($textarea) ->
+  @getCursor = (textarea) ->
     caretPos = 0
     if @isW3C
-      caretPos = $textarea[0].selectionStart
+      caretPos = textarea.selectionStart
     else if document.selection
-      $textarea.focus()
+      textarea.focus()
       range = document.selection.createRange()
-      range.moveStart "character", -$textarea.val().length
+      range.moveStart "character", -textarea.value.length
       caretPos = range.text.length
     caretPos
 
-  @setCursor = ($textarea, pos) ->
+  @setCursor = (textarea, pos) ->
     if @isW3C
-      $textarea.focus()
-      $textarea[0].setSelectionRange pos, pos
-    else if $textarea[0].createTextRange
-      range = $textarea.createTextRange()
+      textarea.focus()
+      textarea.setSelectionRange pos, pos
+    else if textarea.createTextRange
+      range = textarea.createTextRange()
       range.collapse true
       range.moveEnd "character", pos
       range.moveStart "character", pos
       range.select()
 
   # from http://js8.in/538.html
-  @insertCursor = ($textarea, value) ->
-    textarea = $textarea[0]
+  @insertCursor = (textarea, value) ->
     if @isW3C
       startPos = textarea.selectionStart
       endPos = textarea.selectionEnd
       scrollTop = textarea.scrollTop
-      content = $textarea.val()
+      content = textarea.value
 
       contentLength = content.length
       prefixContent = content.substring 0, startPos
@@ -257,31 +256,31 @@ class AutoCompleter
       selectedContent = content.substring startPos, endPos
       finalContent = prefixContent + value + selectedContent + postfixContent
 
-      $textarea.val(finalContent).focus()
+      textarea.value = finalContent
+      textarea.focus()
       textarea.selectionStart = startPos + value.length
       textarea.selectionEnd = endPos + value.length
       textarea.scrollTop = scrollTop
     else if document.selection
-      $textarea.focus()
+      textarea.focus()
       range = document.selection.createRange()
       range.text = value
-      $textarea.focus()
+      textarea.focus()
     else
       textarea.value += value
-      $textarea.focus()
+      textarea.focus()
 
-  @getSelected = ($textarea) ->
-    textarea = $textarea[0]
+  @getSelected = (textarea) ->
     if @isW3C
       startPos = textarea.selectionStart
       endPos = textarea.selectionEnd
-      selectedContent = $textarea.val().substring startPos, endPos
+      selectedContent = textarea.value.substring startPos, endPos
     else if document.selection
-      $textarea.focus()
+      textarea.focus()
       range = document.selection.createRange()
       selectedContent = range.text
     else
-      selectedContent = $textarea.val()
+      selectedContent = textarea.value
     selectedContent
 
   @getLastTrigger = (content, cursorPos, flags, hiddenChars) ->
@@ -300,9 +299,9 @@ class AutoCompleter
     lastTrigger = char: "", pos: -1 if lastHiddenChar > lastTrigger.pos
     char: lastTrigger.char, pos: lastTrigger.pos + 1
 
-  @getInputed = ($textarea, triggerdPos) ->
-    cursorPos = @getCursor $textarea
-    $textarea.val().substring triggerdPos, cursorPos
+  @getInputed = (textarea, triggerdPos) ->
+    cursorPos = @getCursor textarea
+    textarea.value.substring triggerdPos, cursorPos
 
 
 if module?.exports?
