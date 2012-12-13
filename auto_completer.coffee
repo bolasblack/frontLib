@@ -2,10 +2,12 @@ if (not ($ = @jQuery)?.fn?) and require?
   $ = require 'jquery'
 return unless $?.fn?
 
-lastIndexOf = Array::lastIndexOf or (searchvalue, start) ->
-  for i in [@length...1] when (item = this[i]) is searchvalue
-    return i
+Array::lastIndexOf ?= (elem, start) ->
+  i = start ? @length
+  return i while i-- when this[i] is elem
   -1
+
+String::lastIndexOf ?= Array::lastIndexOf
 
 getInt = (str) -> parseInt str, 10
 
@@ -288,12 +290,12 @@ class AutoCompleter
     lastHiddenChar = -1
     for flag in flags
       # cursorPos 表明的是 cursor 的位置，是 content.length + 1
-      flagPos = lastIndexOf.call content, flag, cursorPos - 1
+      flagPos = content.lastIndexOf flag, cursorPos - 1
       continue if flagPos < lastTrigger.pos
       lastTrigger.pos = flagPos
       lastTrigger.char = flag
     for hiddenChar in hiddenChars
-      hiddenCharPos = lastIndexOf.call content, hiddenChar, cursorPos - 1
+      hiddenCharPos = content.lastIndexOf hiddenChar, cursorPos - 1
       if hiddenCharPos > lastHiddenChar and cursorPos isnt hiddenCharPos
         lastHiddenChar = hiddenCharPos
     lastTrigger = char: "", pos: -1 if lastHiddenChar > lastTrigger.pos
