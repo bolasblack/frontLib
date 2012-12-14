@@ -7,4 +7,3 @@ Some fragmentary front code
 * bootstrap-select.coffee: Bootstarp plugin, make `<select>` tag became bootstrap style
 * backbone.event.one.coffee: Backbone plugin, add `Event.one` method to `Backbone.Model`, `Backbone.Collection`, `Backbone.View`, `Backbone.Router`, `Backbone.History`, `Backbone.Event`
 * underscore-extra.coffee: Underscore plugin, add some useful method(like `arrayDel`, `split`, `in`) for underscore.js
-* radius.styl: a shortcut css class file
