@@ -1,0 +1,58 @@
+radiusNormal = 5px
+
+.radius
+  border-top-left-radius: radiusNormal
+  border-top-right-radius: radiusNormal
+  border-bottom-left-radius: radiusNormal
+  border-bottom-right-radius: radiusNormal
+
+  &.top
+    border-bottom-left-radius: 0
+    border-bottom-right-radius: 0
+
+  &.bottom
+    border-top-left-radius: 0
+    border-top-right-radius: 0
+
+  &.left
+    border-top-right-radius: 0
+    border-bottom-right-radius: 0
+
+  &.right
+    border-top-left-radius: 0
+    border-bottom-left-radius: 0
+
+  .bar&, .btn-group&
+    & > .btn
+      &:first-child
+        border-top-left-radius: radiusNormal
+        border-bottom-left-radius: radiusNormal
+      &:last-child
+        border-top-right-radius: radiusNormal
+        border-bottom-right-radius: radiusNormal
+
+    &.top > .btn
+      &:first-child
+        border-top-left-radius: radiusNormal
+        border-bottom-left-radius: 0
+      &:last-child
+        border-top-right-radius: radiusNormal
+        border-bottom-right-radius: 0
+
+    &.bottom > .btn
+      &:first-child
+        border-bottom-left-radius: radiusNormal
+        border-top-left-radius: 0
+      &:last-child
+        border-bottom-right-radius: radiusNormal
+        border-top-right-radius: 0
+
+    &.left > .btn
+      &:last-child
+        border-top-right-radius: 0
+        border-bottom-right-radius: 0
+
+    &.right > .btn
+      &:first-child
+        border-top-left-radius: 0
+        border-bottom-left-radius: 0
